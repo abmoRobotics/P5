@@ -67,6 +67,13 @@
         "random": "cpp",
         "set": "cpp",
         "string": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "csetjmp": "cpp",
+        "csignal": "cpp",
+        "future": "cpp",
+        "scoped_allocator": "cpp",
+        "regex": "cpp",
+        "cuchar": "cpp",
+        "shared_mutex": "cpp"
     }
 }

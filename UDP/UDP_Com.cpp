@@ -6,6 +6,9 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 void UDP_Com::EncodeMessage(){
@@ -42,44 +45,103 @@ void UDP_Com::UpdateMessage(float posx, float posy, float velx, float vely, floa
     }; 
 
     EncodeMessage();
-    
-    std::cout << JSON_Message << std::endl;
+
+    if(debug == true){
+        std::cout << "Message updated with new information\n" << std::endl;
+    }
     
 } 
 
-void UDP_Com::SendMessage(){  //Send besked til server
+void UDP_Com::SendMessage(){  //CLIENT, send message to server
+    int sockfd;
+    char buffer[MAXLINE];
+    char Mesg[] = "0";
+    strcpy(Mesg,JSON_Message.c_str());
 
-    int sock = 0;
-    struct sockaddr_in serv_addr;
-    // char *hello;
-    char Message[] = "0";
-    strcpy(Message,JSON_Message.c_str());
-
-    char buffer[1024] = {0};
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-        printf("\n Socket creation error \n");
+    struct sockaddr_in     servaddr;
+  
+    // Creating socket file descriptor
+    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
     }
+  
+    memset(&servaddr, 0, sizeof(servaddr));
+      
+    // Filling server information
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons(PORT);
+    servaddr.sin_addr.s_addr = INADDR_ANY;
+      
+    int n, len;
+      
+    sendto(sockfd, (const char *)Mesg, strlen(Mesg),
+        MSG_CONFIRM, (const struct sockaddr *) &servaddr, 
+            sizeof(servaddr));
 
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
-
-    // Convert IPv4 and IPv6 addresses from text to binary form
-    if(inet_pton(AF_INET, "172.20.66.65", &serv_addr.sin_addr)<=0) 
-    {
-        printf("\nInvalid address/ Address not supported \n");
+    if(debug == true){
+        std::cout << Message.dump(3) << "\n Message sent to server\n" << std::endl;
     }
-
-    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-    {
-        printf("\nConnection Failed \n");
-    }
-    send(sock , Message , strlen(Message) , 0 );
-    printf("Message sent\n");
-
+    
+    close(sockfd);
 
 }
 
-void UDP_Com::ReceiveMessage(std::string port){  //Modtag besked fra client
+void UDP_Com::ReceiveMessage(){  //SERVER, receive message from client
+    
+    int sockfd;
+    char buffer[MAXLINE];
+    struct sockaddr_in servaddr, cliaddr;
+      
+    // Creating socket file descriptor
+    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+      
+    memset(&servaddr, 0, sizeof(servaddr));
+    memset(&cliaddr, 0, sizeof(cliaddr));
+      
+    // Filling server information
+    servaddr.sin_family    = AF_INET; // IPv4
+    servaddr.sin_addr.s_addr = INADDR_ANY;
+    servaddr.sin_port = htons(PORT);
+      
+    // Bind the socket with the server address
+    if ( bind(sockfd, (const struct sockaddr *)&servaddr, 
+            sizeof(servaddr)) < 0 )
+    {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+      
+    int len, n;
+    len = sizeof(cliaddr);  //len is value/resuslt
+  
+    n = recvfrom(sockfd, (char *)buffer, MAXLINE, 
+                MSG_WAITALL, ( struct sockaddr *) &cliaddr,
+                (socklen_t*)&len);
+    buffer[n] = '\0';
+    
+    //Convert buffer char array to string and decode
+    std::string RawStringMsg = convertToString(buffer, sizeof(buffer)); 
+    DecodeMessage(RawStringMsg);
+        
+    if(debug == true){
+        std::cout << RawStringMsg << "\nMessage received from client\n" << std::endl;
+    }
+    
+}
 
+std::string UDP_Com::convertToString(char* a, int size){
+    std::string s = a;
+    return s;
+}
+
+void UDP_Com::PrintMessage(){
+    std::cout << Message.dump(3) << std::endl;
+}
+
+void UDP_Com::ToggleDebug(bool status){
+    debug = status;
 }
