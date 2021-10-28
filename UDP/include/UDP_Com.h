@@ -13,13 +13,44 @@ private:
     bool debug = false;
 
 public:
+    UDP_Com()
+    {
+        Message =
+        {
+            {"Position", 
+                {
+                    {"X", 0.00}, 
+                    {"Y", 0.00} 
+                }
+            },
+            {"Velocity",
+                {  
+                    {"X", 0.00}, 
+                    {"Y", 0.00} 
+                }
+            },
+            {"Acceleration",
+                { 
+                    {"X", 0.00}, 
+                    {"Y", 0.00} 
+                }
+            },
+            {"BitumenFlow", 0} 
+        }; 
+    }
+
     //konstant flow af positioner fra generede trajectory, fartøj hastighed og om den position er crack eller ej (bitumenflow)
-    void UpdateMessage(float posx, float posy, float velx, float vely, float accx, float accy, int bitflow); //Updater json Message med ny data
+    void UpdatePosition(float posx, float posy);
+    void UpdateVelocity(float velx, float vely);
+    void UpdateAcceleration(float accx, float accy);
+    void UpdateBitumenFlow(int BitFlow);
     void SendMessage();         //Send besked til client
     void ReceiveMessage();      //Modtag besked fra server
     void PrintMessage();        //Prints Message at its current state
     void ToggleDebug(bool status);  //Enables/Disables printing of Debug information
 
     std::string convertToString(char* a, int size);
+
+    
 
 };

@@ -11,6 +11,7 @@ int main(){
 
     UDP_Com TEST;
     TEST.ToggleDebug(true);
+    
     TEST.ReceiveMessage();
     //TEST.PrintMessage();
 }

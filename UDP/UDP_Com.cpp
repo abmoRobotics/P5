@@ -13,44 +13,35 @@
 
 void UDP_Com::EncodeMessage(){
     UDP_Com::JSON_Message = Message.dump(3);
-}
+ }
 
 void UDP_Com::DecodeMessage(std::string JSON_message){
     Message = nlohmann::json::parse(JSON_message);
+ }
+
+void UDP_Com::UpdatePosition(float posx, float posy){
+    Message["Position"]["X"] = posx;
+    Message["Position"]["Y"] = posy;
+    EncodeMessage();
 }
 
-//konstant flow af positioner fra generede trajectory, fartøj hastighed og om den position er crack eller ej (bitumenflow)
-void UDP_Com::UpdateMessage(float posx, float posy, float velx, float vely, float accx, float accy, int bitflow){ //Updater json Message med ny data
-    Message =
-    {
-        {"Position", 
-            {
-                {"X", posx}, 
-                {"Y", posy} 
-            }
-        },
-        {"Velocity",
-            {  
-                {"X", velx}, 
-                {"Y", vely} 
-            }
-        },
-        {"Acceleration",
-            { 
-                {"X", accx}, 
-                {"Y", accy} 
-            }
-        },
-        {"BitumenFlow", bitflow} 
-    }; 
-
+void UDP_Com::UpdateVelocity(float velx, float vely){
+    Message["Velocity"]["X"] = velx;
+    Message["Velocity"]["Y"] = vely;
     EncodeMessage();
+ }
 
-    if(debug == true){
-        std::cout << "Message updated with new information\n" << std::endl;
-    }
-    
-} 
+void UDP_Com::UpdateAcceleration(float accx, float accy){
+    Message["Acceleration"]["X"] = accx;
+    Message["Acceleration"]["Y"] = accy;
+    EncodeMessage();
+ }
+
+void UDP_Com::UpdateBitumenFlow(int BitFlow){
+    Message["BitumenFlow"] = BitFlow;
+    EncodeMessage();
+ }
+
 
 void UDP_Com::SendMessage(){  //CLIENT, send message to server
     int sockfd;
@@ -80,7 +71,7 @@ void UDP_Com::SendMessage(){  //CLIENT, send message to server
             sizeof(servaddr));
 
     if(debug == true){
-        std::cout << Message.dump(3) << "\n Message sent to server\n" << std::endl;
+        std::cout << Mesg << "\n Message sent to server\n" << std::endl;
     }
     
     close(sockfd);
@@ -88,7 +79,6 @@ void UDP_Com::SendMessage(){  //CLIENT, send message to server
 }
 
 void UDP_Com::ReceiveMessage(){  //SERVER, receive message from client
-    
     int sockfd;
     char buffer[MAXLINE];
     struct sockaddr_in servaddr, cliaddr;
@@ -125,8 +115,9 @@ void UDP_Com::ReceiveMessage(){  //SERVER, receive message from client
     
     //Convert buffer char array to string and decode
     std::string RawStringMsg = convertToString(buffer, sizeof(buffer)); 
+
     DecodeMessage(RawStringMsg);
-        
+
     if(debug == true){
         std::cout << RawStringMsg << "\nMessage received from client\n" << std::endl;
     }
