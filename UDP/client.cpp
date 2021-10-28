@@ -13,7 +13,8 @@ int main(int argc, char const *argv[])
     UDP_Com TEST;
     //Call UpdateMessage with position, velocity, acceleration, and bitumen flow
     TEST.ToggleDebug(true);
-    TEST.UpdatePosition(0.3, 0.3);
+    //TEST.UpdatePosition(0.3, 0.3);
+    TEST.UpdateVelocity(10,10);
     TEST.SendMessage();
 
 } 
