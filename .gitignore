@@ -6,5 +6,6 @@
 *.ipynb
 
 vision/TrashFiler/
+vision/Experimental/
 
 .vscode/
