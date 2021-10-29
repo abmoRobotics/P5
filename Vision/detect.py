@@ -62,7 +62,7 @@ while rval:
     output = torch.sigmoid(model(data))
     output = torch.squeeze(output)
     preds = (output > 0.5).float()
-    torchvision.utils.save_image(preds, f"tests/test_images/pred{1}.png")
+    #torchvision.utils.save_image(preds, f"tests/test_images/pred{1}.png")
     #torchvision.utils.save_image(augmentented["image"], f"tests/test_images/pred{1}.png")
     #frame = np.asarray(cv2.resize(frame,(480,320)))
     # frame = np.transpose(frame, (2, 0, 1))
@@ -81,7 +81,7 @@ while rval:
     # frame = np.transpose(frame, (1 , 2, 0))
     # cv2.imshow("frame", frame)
 
-
+    
     # rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     # resized_img = np.asarray(
     #     cv2.resize(rgb_image, (360, 480)))
@@ -95,7 +95,8 @@ while rval:
     # prediction = np.transpose(prediction, (1, 2, 0))
 
     # prediction = np.uint8((prediction > 0.7) * 255)
-    # cv2.imshow("preview", prediction)
+    print(preds.shape)
+    cv2.imshow("preview", preds.cpu().numpy())
     # cv2.imshow("normal", frame)
     key = cv2.waitKey(20)
     # if key == 27:
