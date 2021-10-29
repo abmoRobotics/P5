@@ -42,7 +42,7 @@ def main():
     test_loader = get_testDS()
 
     loop = tqdm(test_loader)
-    model = load_model("model1.pth.tar")
+    model = load_model("model/model1.pth.tar")
 
 
     # def check_accuracy(loader, model, device="cuda"):
