@@ -3,5 +3,8 @@
 *.png
 *.pth.tar
 *.pyc
+*.ipynb
 
 vision/TrashFiler/
+
+.vscode/
