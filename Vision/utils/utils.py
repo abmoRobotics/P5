@@ -1,8 +1,8 @@
 import torch
 import torchvision
-from dataset import CarvanaDataset
+from utils.dataset import CarvanaDataset
 from torch.utils.data import DataLoader
-from model import UNET
+from model.model import UNET
 
 def save_checkpoint(state, filename="my_checkpoint.pth.tar"):
     print("=> Saving checkpoint")

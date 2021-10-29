@@ -1,14 +1,14 @@
-from dataset import CarvanaDataset
+from utils.dataset import CarvanaDataset
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
-from model import UNET
-from utils import check_accuracy
+from model.model import UNET
+from utils.utils import check_accuracy
 import torch
 import torchvision
 from tqdm import tqdm
 import numpy as np
 import torch.nn as nn
-from utils import (load_model)
+from utils.utils import (load_model)
 
 # hyperparameters
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"

@@ -1,4 +1,4 @@
-from model import UNET
+from model.model import UNET
 import torch
 import torch.nn as nn
 import torch.optim as optim

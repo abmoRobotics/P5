@@ -4,8 +4,8 @@ from albumentations.pytorch import ToTensorV2
 from tqdm import tqdm
 import torch.nn as nn
 import torch.optim as optim
-from model import UNET
-from utils import (
+from model.model import UNET
+from utils.utils import (
     load_checkpoint,
     save_checkpoint,
     get_loaders,
@@ -97,7 +97,7 @@ def main():
     )
 
     if LOAD_MODEL:
-        load_checkpoint(torch.load("my_checkpoint.pth.tar"), model)
+        load_checkpoint(torch.load("model/my_checkpoint.pth.tar"), model)
 
 
     check_accuracy(val_loader, model, device=DEVICE)
@@ -118,7 +118,7 @@ def main():
 
         # print some examples to a folder
         save_predictions_as_imgs(
-            val_loader, model, folder="saved_images/", device=DEVICE
+            val_loader, model, folder="tests/saved_images/", device=DEVICE
         )
 
 
