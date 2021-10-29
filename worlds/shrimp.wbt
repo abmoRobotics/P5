@@ -353,4 +353,5 @@ DEF SPHERES Solid {
 }
 Shrimp {
   translation 0.02 0 4.5
+  controller "ControllerV1"
 }

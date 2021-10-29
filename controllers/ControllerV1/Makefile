@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+GITHUB_P5_PATH=/home/marie/Documents/P5_replica
+
 ### Generic Makefile.include for Webots controllers, physics plugins, robot
 ### window libraries, remote control libraries and other libraries
 ### to be used with GNU make
@@ -39,7 +41,7 @@
 ###
 ### ---- C++ Sources ----
 ### if your program uses several C++ source files:
-#CXX_SOURCES = UDP/client.cpp UDP/server.cpp UDP/UDP_Com.cpp controllers/ControllerV1/ControllerV1.cpp
+CXX_SOURCES = $(GITHUB_P5_PATH)/UDP/UDP_Com.cpp ControllerV1.cpp
 
 ###
 ### ---- Compilation options ----
@@ -49,7 +51,7 @@
 ### ---- Linked libraries ----
 ### if your program needs additional libraries:
 ### INCLUDE = -I"/my_library_path/include"
-#INCLUDE = "UDP/include"
+INCLUDE = -I $(GITHUB_P5_PATH)/UDP/include
 ### LIBRARIES = -L"/path/to/my/library" -lmy_library -lmy_other_library
 ###
 ### ---- Linking options ----
@@ -58,7 +60,7 @@
 ###
 ### ---- Webots included libraries ----
 ### if you want to use the Webots C API in your C++ controller program:
-USE_C_API = true
+USE_CPP_API = true 
 ###
 ### ---- Debug mode ----
 ### if you want to display the gcc command line for compilation and link, as
