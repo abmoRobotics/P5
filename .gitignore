@@ -1,0 +1,11 @@
+/controllers/ControllerV1/Makefile
+*.jpg
+*.png
+*.pth.tar
+*.pyc
+*.ipynb
+
+vision/TrashFiler/
+vision/Experimental/
+
+.vscode/
