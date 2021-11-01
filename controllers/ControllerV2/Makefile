@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GITHUB_P5_PATH=/home/emil/Documents/P5
+GITHUB_P5_PATH=/home/marie/P5
 
 ### Generic Makefile.include for Webots controllers, physics plugins, robot
 ### window libraries, remote control libraries and other libraries
@@ -57,6 +57,7 @@ INCLUDE = -I $(GITHUB_P5_PATH)/UDP/include
 ### ---- Linking options ----
 ### if special linking flags are needed:
 ### LFLAGS = -s
+LFLAGS = -pthread
 ###
 ### ---- Webots included libraries ----
 ### if you want to use the Webots C API in your C++ controller program:

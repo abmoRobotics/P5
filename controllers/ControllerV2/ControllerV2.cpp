@@ -17,6 +17,14 @@
 //Til multithreading
 #include <sys/wait.h>
 #include <unistd.h>
+#include <thread>
+#include <mutex>
+
+std::mutex MutexP;
+float POSY = 0;
+float POSX = 0;
+
+#pragma region RobotKinematik
 // All the webots classes are defined in the "webots" namespace
 using namespace webots;
 float AngleRightActuator;
@@ -113,6 +121,38 @@ void InverseKinematics(float x, float y)
   AngleRightActuatorCompensated = (AngleRightActuator * (-1)) + (90*M_PI/180);
 
 }
+#pragma endregion RobotKinematik
+
+void Simulation(Robot Robort, Motor MotorLeft, Motor MotorRight){ //This function is the controller which handles the WeBOTS controller
+  while (Robort.step(32) != -1){
+    MutexP.lock();
+    InverseKinematics(POSX, POSY); 
+    MutexP.unlock();
+    MotorRight.setPosition(AngleRightActuatorCompensated);
+    MotorLeft.setPosition(AngleLeftActuatorCompensated);
+    std::cout << "parent:" << POSX << std::endl;
+  }
+}
+
+void Communication(){ //This function communicates throught the UDP_Com object with other software
+  //CHILD PROCESS
+  UDP_Com UDP;
+  UDP.InitiateServer();
+  UDP.ToggleDebug(true);
+  int rounds = 0;
+  while (1){
+    UDP.ReceiveMessage();
+    UDP.PrintMessage();
+    float *vel = UDP.ExtractVelocity();
+    MutexP.lock();
+    POSX+=vel[0];
+    POSY+=vel[1];
+    MutexP.unlock();
+    rounds++;
+  }
+
+
+}
 
 // This is the main program of your controller.
 // It creates an instance of your Robot instance, launches its
@@ -122,53 +162,23 @@ void InverseKinematics(float x, float y)
 // The arguments of the main function can be specified by the
 // "controllerArgs" field of the Robot node
 int main(int argc, char **argv) {
-  // create the Robot instance.
-  Robot *robot = new Robot();
-  
+  // create the Robot and motor instances.
+  Robot *robot = new Robot();  
   Motor *motorR = robot->getMotor("MotorR");
   Motor *motorL = robot->getMotor("MotorL");
   
   //___________ FRA EMIL OG MARIE ____________
   printf("Server virker\n");
 
-  int pid = fork();
+  std::thread WeBotsController (Simulation, std::ref(*robot), std::ref(*motorL), std::ref(*motorR));
+  std::thread CommunicationHandler (Communication);
 
-  if (pid == -1) {
-      perror("fork");
-      exit(EXIT_FAILURE);
-  } else if (pid == 0) {
-    //PARENT PROCCESS
-    while (robot->step(32) != -1){
-      std::cout << "Main loo" << std::endl;
-      //InverseKinematics(POSX, POSY); 
-      motorR->setPosition(AngleRightActuatorCompensated);
-      motorL->setPosition(AngleLeftActuatorCompensated);
-    }
-  } else {
-    //CHILD PROCESS
-    UDP_Com UDP;
-    UDP.InitiateServer();
-    UDP.ToggleDebug(true);
-    int rounds = 0;
-    //InverseKinematics(POSX, POSY);
-    while (1){
-      UDP.ReceiveMessage();
-      UDP.PrintMessage();
-      float *vel = UDP.ExtractVelocity();
-      // POSX+=vel[0];
-      // POSY+=vel[1];
-      
-      
-      // std::cout << POSX << std::endl;
-      rounds++;
-      std::cout << "Rounds in loop: " << rounds << std::endl;
-    }
-      
-  }
-     
-
+  WeBotsController.join();
+  CommunicationHandler.join();
+  std::cout << "Syncronization of Threads Complete" << std::endl;
+  
   // Enter here exit cleanup code.
-
   delete robot;
   return 0;
+
 }

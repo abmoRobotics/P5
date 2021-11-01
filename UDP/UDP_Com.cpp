@@ -25,6 +25,7 @@ void UDP_Com::UpdatePosition(float posx, float posy){
     EncodeMessage();
 }
 
+#pragma region Update And Extract
 void UDP_Com::UpdateVelocity(float velx, float vely){
     Message["Velocity"]["X"] = velx;
     Message["Velocity"]["Y"] = vely;
@@ -67,6 +68,7 @@ int UDP_Com::ExtractBitumenFlow(){
     int BitFlow = Message["BitumenFlow"];
     return BitFlow;
 }
+#pragma endregion
 
 void UDP_Com::SendMessage(){  //CLIENT, send message to server
     char buffer[MAXLINE];
