@@ -41,7 +41,7 @@ GITHUB_P5_PATH=/home/emil/Documents/P5
 ###
 ### ---- C++ Sources ----
 ### if your program uses several C++ source files:
-CXX_SOURCES = $(GITHUB_P5_PATH)/UDP/UDP_Com.cpp ControllerV1.cpp
+CXX_SOURCES = $(GITHUB_P5_PATH)/UDP/UDP_Com.cpp ControllerV2.cpp
 
 ###
 ### ---- Compilation options ----

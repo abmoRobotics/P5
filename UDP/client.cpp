@@ -32,22 +32,22 @@ int main(int argc, char const *argv[])
     switch (c) {
         case 'w':  // Q key -> forward
         std::cout << "Forward" << std::endl;
-        TEST.UpdateVelocity(10,10);
+        TEST.UpdateVelocity(0,0.1);
         break;
 
         case 'a':  // A key -> left
         std::cout << "Left" << std::endl;
-        TEST.UpdateVelocity(0,10);
+        TEST.UpdateVelocity(-0.1,0);
         break;
 
         case 's':  // S key -> backwards
         std::cout << "Backward" << std::endl;
-        TEST.UpdateVelocity(-10,-10);
+        TEST.UpdateVelocity(0,-0.1);
         break;
 
         case 'd':  // D key -> right
         std::cout << "Right" << std::endl;
-        TEST.UpdateVelocity(10,0);
+        TEST.UpdateVelocity(0.1,0);
         break;
 
         case 'x':
@@ -56,13 +56,13 @@ int main(int argc, char const *argv[])
         break;
 
         default:
-        std::cout << "h" << std::endl;
+        std::cout << "Press x to close" << std::endl;
         break;
     }
 
 
 
-        //TEST.SendMessage();
+        TEST.SendMessage();
         rounds++;
         std::cout << "Rounds in loop: " << rounds << std::endl;
         // std::this_thread::sleep_for(std::chrono::milliseconds(500));

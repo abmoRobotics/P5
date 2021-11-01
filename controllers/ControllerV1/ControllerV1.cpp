@@ -58,8 +58,7 @@ int main() {
     UDP.InitiateServer();
     UDP.ToggleDebug(true);
     int rounds = 0;
-    while (1)
-    {
+    while (1){
       UDP.ReceiveMessage();
       UDP.PrintMessage();
       float *vel = UDP.ExtractVelocity();
@@ -75,7 +74,7 @@ int main() {
       std::cout << "Rounds in loop: " << rounds << std::endl;
     }
       
-    }
+  }
 
   delete robot;
   return 0;
