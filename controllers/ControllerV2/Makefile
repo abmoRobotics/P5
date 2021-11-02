@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GITHUB_P5_PATH=/home/emil/Documents/P5
+ABSOLUTEPATH = $(shell pwd)
+GITHUB_P5_PATH = $(shell echo $(shell echo $(ABSOLUTEPATH) | sed 's/controllers//g') | sed 's/ControllerV2//g')
+
+$(info    Detected path for Github repository is: $(GITHUB_P5_PATH))
+$(info    If compiler complains about "No rule to make target (...)", Github path is incorrect -> Change manually in makefile)
 
 ### Generic Makefile.include for Webots controllers, physics plugins, robot
 ### window libraries, remote control libraries and other libraries
