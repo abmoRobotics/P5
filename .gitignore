@@ -1,4 +1,7 @@
+# The release folders for WeBots controllers should be ignored.
+# If this is neglected, the project will not compile using "make" command.
 /controllers/ControllerV2/build/release/
+/controllers/ControllerV1/build/release/
 
 *.jpg
 *.png
