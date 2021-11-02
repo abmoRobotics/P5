@@ -1,4 +1,5 @@
-/controllers/ControllerV1/Makefile
+/controllers/ControllerV2/build/release/
+
 *.jpg
 *.png
 *.pth.tar
