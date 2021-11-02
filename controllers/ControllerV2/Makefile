@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GITHUB_P5_PATH=/home/marie/P5
+GITHUB_P5_PATH=/home/emil/Documents/P5
 
 ### Generic Makefile.include for Webots controllers, physics plugins, robot
 ### window libraries, remote control libraries and other libraries
