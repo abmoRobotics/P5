@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-GITHUB_P5_PATH=/home/marie/P5
+ABSOLUTEPATH = $(shell pwd)
+GITHUB_P5_PATH = $(shell echo $(shell echo $(ABSOLUTEPATH) | sed 's/controllers//g') | sed 's/ControllerV2//g')
+
+$(info    Detected path for Github repository is: $(GITHUB_P5_PATH))
+$(info    If compiler complains about "No rule to make target (...)", Github path is incorrect -> Change manually in makefile)
 
 ### Generic Makefile.include for Webots controllers, physics plugins, robot
 ### window libraries, remote control libraries and other libraries
@@ -41,7 +45,7 @@ GITHUB_P5_PATH=/home/marie/P5
 ###
 ### ---- C++ Sources ----
 ### if your program uses several C++ source files:
-CXX_SOURCES = $(GITHUB_P5_PATH)/UDP/UDP_Com.cpp ControllerV1.cpp
+CXX_SOURCES = $(GITHUB_P5_PATH)/UDP/UDP_Com.cpp ControllerV2.cpp
 
 ###
 ### ---- Compilation options ----
@@ -57,6 +61,7 @@ INCLUDE = -I $(GITHUB_P5_PATH)/UDP/include
 ### ---- Linking options ----
 ### if special linking flags are needed:
 ### LFLAGS = -s
+LFLAGS = -pthread
 ###
 ### ---- Webots included libraries ----
 ### if you want to use the Webots C API in your C++ controller program:
