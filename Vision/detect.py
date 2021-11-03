@@ -10,13 +10,14 @@ from torchvision import transforms
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from datetime import date, datetime
+import time
 
 from utils.utils import load_model
 
 
 # hyperparameters
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-IMAGE_HEIGHT = 320
+IMAGE_HEIGHT = 360
 IMAGE_WIDTH = 480
 
 #Transforms
@@ -37,13 +38,15 @@ detect_transform = A.Compose(
 #print("Using device: ", device)
 
 # Load the trained model
-model = load_model("model/model1.pth.tar")
+model = load_model("model/crack500BrightnessAugmentation.pth.tar")
 
 
 # Open window to visualize the segmentation
 #cv2.namedWindow("Real Feed")
 #cv2.namedWindow("Segmented Feed")
 cap = cv2.VideoCapture(1)
+# cap.set(cv2.CAP_PROP_FRAME_WIDTH, 2550)
+# cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1440)
 
 # try to get first frame
 if cap.isOpened():
@@ -55,6 +58,7 @@ start_time = datetime.now()
 frame_count = 1
 
 while rval:
+    start_time = time.time()
     rval, frame = cap.read()
     augmentented = detect_transform(image=frame)
     data = augmentented["image"].to(device=DEVICE)
@@ -95,10 +99,12 @@ while rval:
     # prediction = np.transpose(prediction, (1, 2, 0))
 
     # prediction = np.uint8((prediction > 0.7) * 255)
-    print(preds.shape)
+    # print(preds.shape)
     cv2.imshow("preview", preds.cpu().numpy())
-    # cv2.imshow("normal", frame)
-    key = cv2.waitKey(20)
+    cv2.imshow("normal", frame)
+    #print("FPS: ", 1.0 / (time.time() - start_time))
+    key = cv2.waitKey(1)
+    print("FPS: ", 1.0 / (time.time() - start_time))
     # if key == 27:
     #     break
     # if frame_count % 30 == 0:
@@ -109,4 +115,4 @@ while rval:
 # Close window
 cv2.destroyWindow("frame")
 # cv2.destroyWindow("preview")
-# cv2.destroyWindow("normal")
+cv2.destroyWindow("normal")

@@ -86,7 +86,7 @@ def check_accuracy(loader, model):
 
     for batch_idx, (data, masks) in enumerate(loop):
         data = data.to(device=DEVICE)
-        print(data.shape)
+        #print(data.shape)
         masks = masks.to(device=DEVICE)
         data = torch.unsqueeze(data,0)
         masks = torch.unsqueeze(masks,0)

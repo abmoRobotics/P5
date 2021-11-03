@@ -4,7 +4,7 @@ from utils.dataset import CarvanaDataset
 from torch.utils.data import DataLoader
 from model.model import UNET
 
-def save_checkpoint(state, filename="model/my_checkpoint.pth.tar"):
+def save_checkpoint(state, filename="model/crack500BrightnessAugmentation3depth.pth.tar"):
     print("=> Saving checkpoint")
     torch.save(state, filename)
 
@@ -92,7 +92,7 @@ def check_accuracy(loader, model, device="cuda"):
     model.eval()
 
     with torch.no_grad():
-        print(type(loader))
+        #print(type(loader))
         for x, y in loader:
             x = x.to(device)
             y = y.to(device).unsqueeze(1)
@@ -114,6 +114,7 @@ def check_accuracy(loader, model, device="cuda"):
     print(f"Dice score: {dice_score/len(loader)}")
     print(f"IoU score: {IoU}")
     model.train()
+    return IoU
 
 def save_predictions_as_imgs(
     loader, model, folder="saved_images/", device="cuda"

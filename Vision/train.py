@@ -17,12 +17,12 @@ from utils.utils import (
 LEARNING_RATE = 1e-4 # original 1e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 16
-NUM_EPOCHS = 20
-NUM_WORKERS = 8
+NUM_EPOCHS = 30
+NUM_WORKERS = 4
 IMAGE_HEIGHT = 320 #160*2  # 1280 originally
 IMAGE_WIDTH = 480#240*2  # 1918 originally
 PIN_MEMORY = True
-LOAD_MODEL = False
+LOAD_MODEL = True
 TRAIN_IMG_DIR = "data/train_images/"
 TRAIN_MASK_DIR = "data/train_masks/"
 VAL_IMG_DIR = "data/val_images/"
@@ -57,6 +57,7 @@ def main():
             A.Rotate(limit=35, p=1.0),
             A.HorizontalFlip(p=0.5),
             A.VerticalFlip(p=0.1),
+            A.RandomBrightness(p=0.3), #Originally not used
             A.Normalize(
                 mean=[0.0, 0.0, 0.0],
                 std=[1.0, 1.0, 1.0],
@@ -97,13 +98,14 @@ def main():
     )
 
     if LOAD_MODEL:
-        load_checkpoint(torch.load("model/my_checkpoint.pth.tar"), model)
+        load_checkpoint(torch.load("model/crack500BrightnessAugmentation3depth.pth.tar"), model)
 
 
     check_accuracy(val_loader, model, device=DEVICE)
     scaler = torch.cuda.amp.GradScaler()
+    max_score = 0
 
-    for epoch in range(NUM_EPOCHS):
+    for epoch in range(0, NUM_EPOCHS):
         train_fn(train_loader, model, optimizer, loss_fn, scaler)
 
         # save model
@@ -111,15 +113,27 @@ def main():
             "state_dict": model.state_dict(),
             "optimizer": optimizer.state_dict(),
         }
-        save_checkpoint(checkpoint)
+        
 
         # check accuracy
-        check_accuracy(val_loader, model, device=DEVICE)
+        IoU = check_accuracy(val_loader, model, device=DEVICE)
 
-        # print some examples to a folder
-        save_predictions_as_imgs(
+        if IoU > max_score:
+            print("Best model found => saving")
+            max_score = IoU
+            # Save model
+            save_checkpoint(checkpoint)
+
+            # print some examples to a folder
+            save_predictions_as_imgs(
             val_loader, model, folder="tests/saved_images/", device=DEVICE
-        )
+            )
+        
+        if epoch == 20:
+            print("Changing learning rate to 1e-5")
+            optimizer.param_groups[0]['lr'] = 1e-5
+        
+        print(f"EPOCH: {epoch}/{NUM_EPOCHS}")
 
 
 if __name__ == "__main__":
