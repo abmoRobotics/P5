@@ -1,0 +1,8 @@
+Get dataset from onedrive and name folders
+
+-test_images
+-test_masks
+-train_images
+-train_masks
+-val_images
+-val_masks
