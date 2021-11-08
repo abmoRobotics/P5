@@ -2,6 +2,7 @@
 # If this is neglected, the project will not compile using "make" command.
 /controllers/ControllerV2/build/release/
 /controllers/ControllerV1/build/release/
+/controllers/ControllerSomErSej/build/release/
 
 *.jpg
 *.png
