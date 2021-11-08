@@ -4,7 +4,7 @@ WorldInfo {
 }
 Viewpoint {
   orientation -0.03346843241009817 -0.958948214014454 -0.2815993374823522 2.9146276232835007
-  position -0.5030422756526862 3.096130780577606 -3.637398188659161
+  position -1.7404944960376836 6.489392855795626 -8.769748386246976
 }
 RectangleArena {
   floorSize 10 10
@@ -278,7 +278,7 @@ Robot {
   }
   physics Physics {
   }
-  controller "Controller"
+  controller "ControllerV2"
 }
 Transform {
 }

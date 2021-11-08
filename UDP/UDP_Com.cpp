@@ -19,13 +19,14 @@ void UDP_Com::DecodeMessage(std::string JSON_message){
     Message = nlohmann::json::parse(JSON_message);
 }
 
+#pragma region Update And Extract
 void UDP_Com::UpdatePosition(float posx, float posy){
     Message["Position"]["X"] = posx;
     Message["Position"]["Y"] = posy;
     EncodeMessage();
 }
 
-#pragma region Update And Extract
+
 void UDP_Com::UpdateVelocity(float velx, float vely){
     Message["Velocity"]["X"] = velx;
     Message["Velocity"]["Y"] = vely;

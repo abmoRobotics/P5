@@ -27,7 +27,7 @@ public:
     void FastMove(float x, float y);
    // ~Controller();
     
-    webots::Robot *robot;
+    webots::Robot *robot; //whats the need?
 };
 
 // Controller::Controller(/* args */)

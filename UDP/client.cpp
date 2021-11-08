@@ -50,6 +50,16 @@ int main(int argc, char const *argv[])
         TEST.UpdateVelocity(0.1,0);
         break;
 
+        case 'm':  // m key -> higher pos
+        std::cout << "Higher pos" << std::endl;
+        TEST.UpdatePosition(0.1, 0.1);
+        break;
+
+        case 'n':  // n key -> higher pos
+        std::cout << "Lower pos" << std::endl;
+        TEST.UpdatePosition(-0.1, -0.1);
+        break;
+
         case 'x':
         system("stty cooked");
         exit(0);

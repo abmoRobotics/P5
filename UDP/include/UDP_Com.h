@@ -24,29 +24,18 @@ public:
     UDP_Com()
     {
         Message =
-        {
-            {"Position", 
-                {
-                    {"X", 0.00}, 
-                    {"Y", 0.00} 
+            {
+                {"Position", 
+                    {
+                        {"X", 0.00}, 
+                        {"Y", 0.00} 
+                    }
+                },
+                {"Time",
+                    {"Detected", 0.00},
+                    {"Set", 0.00}
                 }
-            },
-            {"Velocity",
-                {  
-                    {"X", 0.00}, 
-                    {"Y", 0.00} 
-                }
-            },
-            {"Acceleration",
-                { 
-                    {"X", 0.00}, 
-                    {"Y", 0.00} 
-                }
-            },
-            {"BitumenFlow", 0} 
-        }; 
-
-        
+            };   
     }
 
     //konstant flow af positioner fra generede trajectory, fartøj hastighed og om den position er crack eller ej (bitumenflow)
