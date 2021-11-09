@@ -61,7 +61,7 @@ float MotionPlanning::CalculateDesiredVelocity(float x1, float y1, float x2, flo
         DesiredVelocity = DesiredVelocity * DesiredDirX;
     } else if (coor == 'y')
     {
-        DesiredVelocity = Ydif/timeDif;
+        DesiredVelocity = DesiredVelocity * DesiredDirY;
     }
     
     return DesiredVelocity;
