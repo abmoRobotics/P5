@@ -30,34 +30,38 @@ int main(int argc, char const *argv[])
         system("clear");        
 
     switch (c) {
-        case 'w':  // Q key -> forward
-        std::cout << "Forward" << std::endl;
-        TEST.UpdateVelocity(0,0.1);
-        break;
+        // case 'w':  // Q key -> forward
+        // std::cout << "Forward" << std::endl;
+        // TEST.UpdateVelocity(0,0.1);
+        // break;
 
-        case 'a':  // A key -> left
-        std::cout << "Left" << std::endl;
-        TEST.UpdateVelocity(-0.1,0);
-        break;
+        // case 'a':  // A key -> left
+        // std::cout << "Left" << std::endl;
+        // TEST.UpdateVelocity(-0.1,0);
+        // break;
 
-        case 's':  // S key -> backwards
-        std::cout << "Backward" << std::endl;
-        TEST.UpdateVelocity(0,-0.1);
-        break;
+        // case 's':  // S key -> backwards
+        // std::cout << "Backward" << std::endl;
+        // TEST.UpdateVelocity(0,-0.1);
+        // break;
 
-        case 'd':  // D key -> right
-        std::cout << "Right" << std::endl;
-        TEST.UpdateVelocity(0.1,0);
-        break;
+        // case 'd':  // D key -> right
+        // std::cout << "Right" << std::endl;
+        // TEST.UpdateVelocity(0.1,0);
+        // break;
 
         case 'm':  // m key -> higher pos
         std::cout << "Higher pos" << std::endl;
-        TEST.UpdatePosition(0.1, 0.1);
+        TEST.UpdatePosition(0.4, 1.2);
+        TEST.UpdateTime(2, 4);
+        TEST.UpdateCrackDet(1);
         break;
 
         case 'n':  // n key -> higher pos
         std::cout << "Lower pos" << std::endl;
-        TEST.UpdatePosition(-0.1, -0.1);
+        TEST.UpdatePosition(-0.4, 2.0);
+        TEST.UpdateTime(3, 5);
+        TEST.UpdateCrackDet(1.0);
         break;
 
         case 'x':

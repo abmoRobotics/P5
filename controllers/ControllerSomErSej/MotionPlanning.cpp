@@ -4,11 +4,6 @@
 
 
 
-
-// void MotionPlanning::GetPosition(){
-    
-// }
-
 void MotionPlanning::InitiateTestData(){
     DataPoints[0][0] = 0; //X0
     DataPoints[0][1] = 0; //Y0

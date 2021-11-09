@@ -66,7 +66,7 @@ Robot {
             }
           ]
           endPoint DEF StangRight Solid {
-            translation 3.146701182954459e-08 0 6.293404467005992e-08
+            translation 3.146701391121276e-08 0 6.293404328228114e-08
             rotation 0 -1 0 3.139869497076496e-07
             children [
               DEF StangRight Shape {
@@ -104,7 +104,7 @@ Robot {
                   anchor -0.2 0 1.1
                 }
                 endPoint DEF EndEffRight Solid {
-                  translation -6.88442205742934e-08 0 -1.2517132885747628e-08
+                  translation -6.884421849262523e-08 0 -1.2517138436862751e-08
                   rotation 0 1 0 5.960464477539063e-08
                   children [
                     DEF EndEffRight Shape {
@@ -300,5 +300,5 @@ Robot {
   }
   physics Physics {
   }
-  controller "Controller"
+  controller "ControllerSomErSej"
 }

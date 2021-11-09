@@ -24,29 +24,43 @@ public:
     UDP_Com()
     {
         Message =
-            {
-                {"Position", 
-                    {
-                        {"X", 0.00}, 
-                        {"Y", 0.00} 
-                    }
-                },
-                {"Time",
-                    {"Detected", 0.00},
-                    {"Set", 0.00}
+        {
+            {"Position", 
+                {
+                    {"X", 0.00}, 
+                    {"Y", 0.00} 
                 }
-            };   
+            },
+            {"Time",
+                {
+                    {"Detected", 0.00},
+                    {"TimeSet", 0.00}
+                }
+            },
+            {"Crack", 
+                {
+                    {"DetectionIndex", 0.00}
+                }
+            }
+        }; 
+
+        
     }
+
 
     //konstant flow af positioner fra generede trajectory, fartøj hastighed og om den position er crack eller ej (bitumenflow)
     void UpdatePosition(float posx, float posy);
-    void UpdateVelocity(float velx, float vely);
-    void UpdateAcceleration(float accx, float accy);
-    void UpdateBitumenFlow(int BitFlow);
+    void UpdateTime(float timeDet, float timeClock);
+    void UpdateCrackDet(float crackDet);
+    // void UpdateVelocity(float velx, float vely);
+    // void UpdateAcceleration(float accx, float accy);
+    // void UpdateBitumenFlow(int BitFlow);
     float *ExtractPosition();
-    float *ExtractVelocity();
-    float *ExtractAcceleration();
-    int ExtractBitumenFlow();
+    float *ExtractTime();
+    float *ExtractCrackDet();
+    // float *ExtractVelocity();
+    // float *ExtractAcceleration();
+    // int ExtractBitumenFlow();
     
     void InitiateServer();      //Initiate Server to enable use of the ReceiveMessage() function
     void InitiateClient();      //Initiate Client to enable use of the SendMessage() function

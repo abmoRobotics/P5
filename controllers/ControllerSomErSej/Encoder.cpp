@@ -1,6 +1,8 @@
 #include "include/Encoder.h"
 #include <UDP_Com.h>
+#include "include/MotionPlanning.h"
 #include <iostream>
+#include <vector>
 
 //Til multithreading
 #include <sys/wait.h>
@@ -8,33 +10,30 @@
 #include <thread>
 #include <mutex>
 
-void Encoder::Communication(){ //This function communicates throught the UDP_Com object with other software
-  //CHILD PROCESS
-  UDP_Com UDP;
-  UDP.InitiateServer();
-  UDP.ToggleDebug(true);
-  int rounds = 0;
-  while (1){
-    UDP.ReceiveMessage();
-    UDP.PrintMessage();
-    // float *vel = UDP.ExtractVelocity();
-    // MutexP.lock();
-    // POSX+=vel[0];
-    // POSY+=vel[1];
-    // MutexP.unlock();
-    rounds++;
-  }
+#define COL = 3
+
+std::vector<std::vector<float>> MotionVec;
+
+
+// Alter message from coordinates of two time stamps to coordinates with one time stamp
+void Encoder::Encoding(float posx, float posy, float timedetected, float timeset, float crackDet){
+
+    MotionPlanning Motion;
+
+    float TimeVanTravel = DistVehicle/Velocity; //Seconds from vision position to robot position
+    timeset = timeset;// + TimeVanTravel; //Change timestamp for point
+    
+      //____________  FOR EMIL _____________//
+    //Push points into vector and call MotionPlanning.
+    std::vector<float> stallVec = {posx, posy, timeset, crackDet}; //coordinates, final timestamp, and crack detected if !=0
+    MotionVec.push_back(stallVec);
+
+    //Motion.ComputeA(MotionVec);
+    
 }
 
-// int main(){
-//     printf("Server virker\n");
-
-        
-
-//     //std::thread WeBotsController (Simulation, std::ref(*robot), std::ref(*motorL), std::ref(*motorR));
-//     //std::thread CommunicationHandler (Communication);
-
-//     //WeBotsController.join();
-//     //CommunicationHandler.join();
-//     std::cout << "Syncronization of Threads Complete" << std::endl;
-// }
+void GetVelocity(){
+    //Do sketchy shit in webots
+    //Webots_encoder = Velocity:    
+    float Velocity = Velocity * 0.27778; //Convertion from km/h to m/s
+}

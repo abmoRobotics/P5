@@ -27,14 +27,14 @@ using namespace webots;
 
 void Controller::LinearMove(float x, float y)
 {
-  std::cout << "Moving linearly to " << x << ", " << y << std::endl;
+  //std::cout << "Moving linearly to " << x << ", " << y << std::endl;
   line(x, y);
 }
 
 
 void Controller::FastMove(float x, float y)
 {
-  std::cout << "Moving fast to " << x << ", " << y << std::endl;
+  //std::cout << "Moving fast to " << x << ", " << y << std::endl;
 
   InverseKinematics(x, y, true);
 }
@@ -43,14 +43,14 @@ void Controller::waitForrobotToreachPos(float x, float y)
 {
   robot->step(TIME_STEP);
   ForwardKinematics(getLpos(), getRpos());
-  std::cout << "Going to " << x << ", " << y << " while in " << xCoord << ", " << yCoord << std::endl;
+  //std::cout << "Going to " << x << ", " << y << " while in " << xCoord << ", " << yCoord << std::endl;
  
   //while ( (-0.001 > (x-xCoord) > 0.001) || (-0.001 > (y-yCoord) > 0.001) )
    while(((xCoord-x) < -0.01 || (xCoord-x) > 0.01) || ((yCoord-y) < -0.01 || (yCoord-y) > 0.01))
   {
     robot->step(TIME_STEP);
     ForwardKinematics(getLpos(), getRpos());
-    // std::cout << "Waiting :) " << x << ", " << xCoord << ", " << y << ", " << yCoord << std::endl;
+    // //std::cout << "Waiting :) " << x << ", " << xCoord << ", " << y << ", " << yCoord << std::endl;
   }
   
 }
@@ -98,7 +98,7 @@ void Controller::ForwardKinematics(float theta, float thetad)
   float y = sqrt(square(T3) - square(x));
   xCoord = x;
   yCoord = y;
-  std::cout << "Forward kinematics X: " << x << ", Y: " << y << std::endl;
+  //std::cout << "Forward kinematics X: " << x << ", Y: " << y << std::endl;
 }
 
 void Controller::InverseKinematics(float x, float y, bool PosCheck)
@@ -148,7 +148,7 @@ void Controller::InverseKinematics(float x, float y, bool PosCheck)
   AngleRightActuator = alphaodd + RightAngle;
 
   AngleRightActuatorCompensated = (AngleRightActuator * (-1)) + (90 * M_PI / 180);
-  std::cout << "Left: " << AngleLeftActuatorCompensated << ", Right: " << AngleRightActuatorCompensated << std::endl;
+  //std::cout << "Left: " << AngleLeftActuatorCompensated << ", Right: " << AngleRightActuatorCompensated << std::endl;
   MotorL->setPosition(AngleLeftActuatorCompensated);
   MotorR->setPosition(AngleRightActuatorCompensated);
   robot->step(TIME_STEP);
@@ -176,7 +176,7 @@ void Controller::line(float x0, float y0)
 
   float b = y - a * x;
 
-  //std::cout << "x: " << x << ", y: " << y << ", x0: " << x0 << ", y0: " << y0 << ", a: " << a << ", b: "
+  ////std::cout << "x: " << x << ", y: " << y << ", x0: " << x0 << ", y0: " << y0 << ", a: " << a << ", b: "
   //<< b << ", x1: " << x1 << ", y1: " << y1 << ", Line length: " << linelength << std::endl;
 
   int divisions = linelength * 50;
@@ -188,20 +188,19 @@ void Controller::line(float x0, float y0)
     
     float x2 = (deltaX / divisions * i) + x;
     float y2 = a * x2 + b;
-    std::cout << x2 << ", " << y2 << ", " << divisions << std::endl;
+    //std::cout << x2 << ", " << y2 << ", " << divisions << std::endl;
     Controller::InverseKinematics(x2, y2, false);
     //float y1 = (a * (deltaX/divisions*i) + x + b);
     
     //InverseKinematics(x1, y1);
     
-    std::cout << x1 << "    " << divisions << "    " << i << std::endl;
+    //std::cout << x1 << "    " << divisions << "    " << i << std::endl;
   }
   float x3 = (deltaX / divisions * divisions) + x;
   float y3 = a * x3 + b;
   Controller::InverseKinematics(x3, y3, false);
 }
 
-//Sat ind i Main som en thread
 Controller::Controller()
 {
   Controller::robot = new Robot();
@@ -214,7 +213,7 @@ Controller::Controller()
   // create the Robot instance.
   Controller::PosR->enable(TIME_STEP);
   Controller::PosL->enable(TIME_STEP);
-  std::cout << "Constructor ran" << std::endl;
+  //std::cout << "Constructor ran" << std::endl;
 }
 
 
