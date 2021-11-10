@@ -17,7 +17,7 @@ img = np.array(img)
 (thresh, blackAndWhiteImage) = cv2.threshold(img, 127, 1, cv2.THRESH_BINARY)
 
 def closing(img):
-    kernel = np.ones((5,5),np.uint8)
+    kernel = np.ones((13,13),np.uint8)
     closing = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
     return closing
 
@@ -60,13 +60,13 @@ contours = closing(blackAndWhiteImage)
 
 s1 = skeletonize(contours)
 #draing = crack_width(img)
-
+#print(s1.shape)
 fig, axes = plt.subplots(1,2, figsize=(8, 8), sharex=True, sharey=True)
 ax = axes.ravel()
 
 
 
-ax[0].imshow(img, cmap=plt.cm.gray)
+ax[0].imshow(contours, cmap=plt.cm.gray)
 ax[0].set_title('original')
 ax[0].axis('off')
 
