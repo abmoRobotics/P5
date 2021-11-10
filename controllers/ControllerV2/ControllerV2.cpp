@@ -130,7 +130,7 @@ void Simulation(Robot Robort, Motor MotorLeft, Motor MotorRight){ //This functio
     MutexP.unlock();
     MotorRight.setPosition(AngleRightActuatorCompensated);
     MotorLeft.setPosition(AngleLeftActuatorCompensated);
-    std::cout << "parent:" << POSX << std::endl;
+    //std::cout << "parent:" << POSX << std::endl;
   }
 }
 

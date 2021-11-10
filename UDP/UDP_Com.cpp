@@ -19,27 +19,21 @@ void UDP_Com::DecodeMessage(std::string JSON_message){
     Message = nlohmann::json::parse(JSON_message);
 }
 
+#pragma region Update And Extract
 void UDP_Com::UpdatePosition(float posx, float posy){
     Message["Position"]["X"] = posx;
     Message["Position"]["Y"] = posy;
     EncodeMessage();
 }
 
-#pragma region Update And Extract
-void UDP_Com::UpdateVelocity(float velx, float vely){
-    Message["Velocity"]["X"] = velx;
-    Message["Velocity"]["Y"] = vely;
+void UDP_Com::UpdateTime(float timeDet, float timeClock){
+    Message["Time"]["Detected"] = timeDet;
+    Message["Time"]["TimeSet"] = timeClock;
     EncodeMessage();
 }
 
-void UDP_Com::UpdateAcceleration(float accx, float accy){
-    Message["Acceleration"]["X"] = accx;
-    Message["Acceleration"]["Y"] = accy;
-    EncodeMessage();
-}
-
-void UDP_Com::UpdateBitumenFlow(int BitFlow){
-    Message["BitumenFlow"] = BitFlow;
+void UDP_Com::UpdateCrackDet(float crackDet){
+    Message["Crack"]["DetectionIndex"] = crackDet;
     EncodeMessage();
 }
 
@@ -50,24 +44,37 @@ float *UDP_Com::ExtractPosition(){
     return PosXY;
 }
 
-float *UDP_Com::ExtractVelocity(){
-    float *VelXY = new float[2];
-    VelXY[0] = Message["Velocity"]["X"];
-    VelXY[1] = Message["Velocity"]["Y"];
-    return VelXY;
+float *UDP_Com::ExtractTime(){
+    float *Time = new float[2];
+    Time[0] = Message["Time"]["Detected"];
+    Time[1] = Message["Time"]["TimeSet"];
+    return Time;
 }
 
-float *UDP_Com::ExtractAcceleration(){
-    float *AccXY = new float[2];
-    AccXY[0] = Message["Acceleration"]["X"];
-    AccXY[1] = Message["Acceleration"]["Y"];
-    return AccXY;
+float *UDP_Com::ExtractCrackDet(){
+    float *CrackDet = new float[2];
+    CrackDet[0] = Message["Crack"]["DetectionIndex"];
+    return CrackDet;
 }
 
-int UDP_Com::ExtractBitumenFlow(){
-    int BitFlow = Message["BitumenFlow"];
-    return BitFlow;
-}
+// float *UDP_Com::ExtractVelocity(){
+//     float *VelXY = new float[2];
+//     VelXY[0] = Message["Velocity"]["X"];
+//     VelXY[1] = Message["Velocity"]["Y"];
+//     return VelXY;
+// }
+
+// float *UDP_Com::ExtractAcceleration(){
+//     float *AccXY = new float[2];
+//     AccXY[0] = Message["Acceleration"]["X"];
+//     AccXY[1] = Message["Acceleration"]["Y"];
+//     return AccXY;
+// }
+
+// int UDP_Com::ExtractBitumenFlow(){
+//     int BitFlow = Message["BitumenFlow"];
+//     return BitFlow;
+// }
 #pragma endregion
 
 void UDP_Com::SendMessage(){  //CLIENT, send message to server
@@ -118,7 +125,7 @@ std::string UDP_Com::convertToString(char* a, int size){
 }
 
 void UDP_Com::PrintMessage(){
-    std::cout << Message.dump(3) << std::endl;
+    std::cout << "UDP Printing" << Message.dump(3) << std::endl;
 }
 
 void UDP_Com::ToggleDebug(bool status){

@@ -1,10 +1,13 @@
 #VRML_SIM R2021b utf8
 WorldInfo {
+  basicTimeStep 16
+  FPS 160
+  inkEvaporation 1
   coordinateSystem "NUE"
 }
 Viewpoint {
-  orientation -0.03346843241009817 -0.958948214014454 -0.2815993374823522 2.9146276232835007
-  position -1.7404944960376836 6.489392855795626 -8.769748386246976
+  orientation 0.03935047276429451 -0.8816685622715789 -0.47022556990788344 3.234300242267585
+  position -0.12444284669913079 5.400452143040099 -3.842584996385547
 }
 RectangleArena {
   floorSize 10 10
@@ -12,8 +15,8 @@ RectangleArena {
 TexturedBackgroundLight {
 }
 Robot {
-  translation -7.770873674566995e-19 -0.008696497493622377 -2.2030833112668402e-08
-  rotation -1 -1.0059600987309372e-15 -8.845032374866654e-16 0.005529571636801607
+  translation -0.04019379429980019 0.17717948748346857 0.0073972317695538276
+  rotation -0.9920564240697971 -0.09129639064172704 0.08653912709081461 1.5404109416416567
   children [
     DEF Base Solid {
       translation 0 0.124361 0
@@ -49,16 +52,22 @@ Robot {
         }
         HingeJoint {
           jointParameters HingeJointParameters {
+            position -3.146702032556222e-07
             axis 0 1 0
             anchor -0.2 0 0.1
           }
           device [
+            DEF PosR PositionSensor {
+              name "PosR"
+            }
             DEF MotorR RotationalMotor {
               name "MotorR"
-              maxTorque 100000
+              maxVelocity 3
             }
           ]
           endPoint DEF StangRight Solid {
+            translation 3.146701391121276e-08 0 6.293404328228114e-08
+            rotation 0 -1 0 3.139869497076496e-07
             children [
               DEF StangRight Shape {
                 appearance Appearance {
@@ -90,10 +99,13 @@ Robot {
               }
               HingeJoint {
                 jointParameters HingeJointParameters {
+                  position 6.258565591061763e-08
                   axis 0 1 0
                   anchor -0.2 0 1.1
                 }
                 endPoint DEF EndEffRight Solid {
+                  translation -6.884421849262523e-08 0 -1.2517138436862751e-08
+                  rotation 0 1 0 5.960464477539063e-08
                   children [
                     DEF EndEffRight Shape {
                       appearance Appearance {
@@ -125,6 +137,7 @@ Robot {
                     }
                     HingeJoint {
                       jointParameters HingeJointParameters {
+                        position -5.610078209965304e-08
                         axis 0 1 0
                         anchor 0 0 2.28322
                       }
@@ -150,15 +163,22 @@ Robot {
         }
         HingeJoint {
           jointParameters HingeJointParameters {
+            position -3.5664636038577685e-07
             axis 0 1 0
             anchor 0.2 0 0.1
           }
           device [
+            DEF PosL PositionSensor {
+              name "PosL"
+            }
             DEF MotorL RotationalMotor {
               name "MotorL"
+              maxVelocity 3
             }
           ]
           endPoint DEF StangL Solid {
+            translation 3.5664648734279325e-08 0 -7.132926571618015e-08
+            rotation 0 -1 0 3.5638394186202926e-07
             children [
               DEF StangL Shape {
                 appearance Appearance {
@@ -190,10 +210,12 @@ Robot {
               }
               HingeJoint {
                 jointParameters HingeJointParameters {
+                  position 4.627103199274634e-09
                   axis 0 1 0
                   anchor 0.2 0 1.1
                 }
                 endPoint DEF EndEffLeft Solid {
+                  translation -5.089813737146898e-09 0 9.254206290165712e-10
                   children [
                     DEF EndEffLeft Shape {
                       appearance Appearance {
@@ -278,15 +300,5 @@ Robot {
   }
   physics Physics {
   }
-  controller "ControllerV2"
-}
-Transform {
-}
-Transform {
-}
-Transform {
-}
-Transform {
-}
-Transform {
+  controller "ControllerSomErSej"
 }

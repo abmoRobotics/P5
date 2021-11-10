@@ -10,6 +10,7 @@ from torchvision import transforms
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from datetime import date, datetime
+from utils.features import (closing, skeletonization)
 import time
 
 from utils.utils import load_model
@@ -17,8 +18,8 @@ from utils.utils import load_model
 
 # hyperparameters
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-IMAGE_HEIGHT = 360
-IMAGE_WIDTH = 480
+IMAGE_HEIGHT = 256
+IMAGE_WIDTH = 384
 
 #Transforms
 detect_transform = A.Compose(
@@ -56,8 +57,10 @@ while rval:
     output = torch.sigmoid(model(data))
     output = torch.squeeze(output)
     preds = (output > 0.5).float()
-
-    cv2.imshow("preview", preds.cpu().numpy())
+    preds = closing(preds.cpu().numpy())
+    preds = skeletonization(preds)
+    preds = (preds*255).astype(np.uint8)
+    cv2.imshow("preview", preds)
     cv2.imshow("normal", frame)
     key = cv2.waitKey(1)
     print("FPS: ", 1.0 / (time.time() - start_time))
