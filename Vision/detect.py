@@ -37,7 +37,7 @@ detect_transform = A.Compose(
 # Load the trained model
 model = load_model("model/crack500BrightnessAugmentation.pth.tar")
 
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(1)
 
 # try to get first frame
 if cap.isOpened():
