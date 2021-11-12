@@ -10,6 +10,8 @@
 #include <UDP_Com.h>
 #include "include/Controller.h"
 #include "include/Encoder.h"
+#include "include/MotionPlanning.h"
+
 
 //Til multithreading
 #include <sys/wait.h>
@@ -28,20 +30,22 @@
 // Marie Alternation
 void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
   Controller RobotController;
+  MotionPlanning MotionPlanner;
+  MotionPlanner.InitiateTestData();
+  MotionPlanner.ComputeA();
   while(RobotController.robot->step(16) != -1){
-    RobotController.FastMove(-0.4, 1.2);
-    
     MutexP.lock();
-    if (POSX and POSY != 0)
-    {
-          RobotController.LinearMove(POSX , POSY);
-    }
-    
+    double time = RobotController.robot->getTime();
+    float timeVar = time-(int)time;
 
-    // RobotController.LinearMove(0.4, 2.0);
-    
-    // RobotController.LinearMove(-0.4, 2.0);
-    // RobotController.LinearMove(-0.4, 1.1);
+    //std::cout << timeVar << std::endl;
+
+    float* PositionToMove = MotionPlanner.GetPosition(timeVar);
+
+    // std::cout << PositionToMove[0] << ", " << PositionToMove[1] << std::endl;
+
+    RobotController.FastMove(PositionToMove[0], PositionToMove[1], false);
+
     MutexP.unlock();
 
   };

@@ -17,7 +17,6 @@ MotionPlanning(){
     LastVel[1] = 0;
 }
 
-
 void InitiateTestData();
 void ComputeA();
 float* GetPosition(float t);
