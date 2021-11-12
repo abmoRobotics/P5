@@ -106,9 +106,7 @@ def test2():
         cv2.waitKey(20)
 
 
-def test3():
-    img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L') 
-    img = np.array(img)
+def test3(img):
     (thresh, blackAndWhiteImage) = cv2.threshold(img, 127, 1, cv2.THRESH_BINARY)
 
     contours = closing(blackAndWhiteImage)
@@ -125,14 +123,14 @@ def test3():
         # for segment in filament['pixels']:
         #     print(segment[0], end=' ')
         #     print(segment[-1])
-    # Show the longest path
-    plt.imshow(fil.skeleton, cmap='gray')
-    plt.contour(fil.skeleton_longpath, colors='r')
-    plt.axis('off')
-    plt.show()
+    # # Show the longest path
+    # plt.imshow(fil.skeleton, cmap='gray')
+    # plt.contour(fil.skeleton_longpath, colors='r')
+    # plt.axis('off')
+    # plt.show()
 
 
-    plt.imshow(fil.skeleton, cmap='gray')
+    # plt.imshow(fil.skeleton, cmap='gray')
 
     # this also works for multiple filaments/skeletons in the image: here only one
     #print(fil.filaments[0].branch_properties)
@@ -151,9 +149,39 @@ def test3():
 
         y,x = longest_branch_pix[:,0],longest_branch_pix[:,1]
 
-        plt.scatter(x,y , color='r')
+    #     plt.scatter(x,y , color='r')
 
-    plt.axis('off')
-    plt.show()
-    
-test3()
+    # plt.axis('off')
+    # plt.show()
+
+def test4(img):
+    (thresh, blackAndWhiteImage) = cv2.threshold(img, 127, 1, cv2.THRESH_BINARY)
+
+    contours = closing(blackAndWhiteImage)
+    skeleton = skeletonize(contours)
+
+
+
+    return skeleton
+
+
+
+
+img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L') 
+img = np.array(img)
+
+
+img2 = test4(img)
+preds = (img2*255).astype(np.uint8)
+contours, hierarchy = cv2.findContours(preds,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+#area = cv2.contourArea(contours)
+cv2.drawContours(preds,[contours[0]],0,(255,0,0),5)
+
+for point in contours[0]:
+    print(point)
+#for idx, cnt in enumerate(contours):
+#    cv2.drawContours(preds,[cnt],0,(255,0,0),5)
+
+plt.imshow(img2)
+plt.axis('off')
+plt.show()
