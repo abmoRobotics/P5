@@ -2,6 +2,17 @@
 #include <math.h>
 #include <UDP_Com.h>
 #include <iostream>
+#include <vector>
+
+
+void MotionPlanning::Tester(std::vector<std::vector<float>> GoalsVector){
+    //Test to see if goals can be send between 
+            for (size_t i = 0; i < GoalsVector.size(); i++) //four iterations
+        {
+              std::cout << "Timeset for robot in MotionPlanning: " << GoalsVector[0][2] << ".  Pos x: " << GoalsVector[0][0] << std::endl;
+        }
+       
+}
 
 float* MotionPlanning::GetPosition(float t){
     static float Position[2];

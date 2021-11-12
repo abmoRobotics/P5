@@ -12,7 +12,6 @@
 #include "include/Encoder.h"
 #include "include/MotionPlanning.h"
 
-
 //Til multithreading
 #include <sys/wait.h>
 #include <unistd.h>
@@ -25,11 +24,37 @@
     float TimeDetected;
     float TimeSet;
     float CrackDetection;
+    std::vector<std::vector<float>> Goals;
 
 
 // Marie Alternation
 void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
   Controller RobotController;
+  MotionPlanning Motion;
+
+  while(RobotController.robot->step(16) != -1){
+
+
+///Old shit
+    MutexP.lock();
+    //MotionPlanning tilgår goals vektor
+    Motion.Tester(Goals);
+
+    //Motion.ComputeA(Goals);
+    MutexP.unlock();
+
+
+    RobotController.FastMove(-0.4, 1.2);
+    
+    MutexP.lock();
+
+    if (POSX and POSY != 0)
+    {
+          RobotController.LinearMove(POSX , POSY);
+    }
+    ///^^^Old shit. 
+
+
   MotionPlanning MotionPlanner;
   MotionPlanner.InitiateTestData();
   MotionPlanner.ComputeA();
@@ -69,15 +94,15 @@ void Communication(){ // Udlede positioner og tider fra vision
     float *pos = UDP.ExtractPosition();
     float *time = UDP.ExtractTime();
     float *crackDet = UDP.ExtractCrackDet();
-    MutexP.lock();
-    POSX = pos[0];
-    POSY = pos[1];   
-    TimeDetected = time[0];
-    TimeSet = time[1];
-    CrackDetection = crackDet[0];
-
-    EncodeMsg.Encoding(POSX, POSY, TimeDetected, TimeSet, CrackDetection);
-    MutexP.unlock();
+      MutexP.lock();
+          POSX = pos[0];
+          POSY = pos[1];   
+          TimeDetected = time[0];
+          TimeSet = time[1];
+          CrackDetection = crackDet[0];
+            //Define goals vector by encoder function
+          Goals = { EncodeMsg.Encoding(POSX, POSY, TimeDetected, TimeSet, CrackDetection) };
+      MutexP.unlock();
     rounds++;
     
   }
