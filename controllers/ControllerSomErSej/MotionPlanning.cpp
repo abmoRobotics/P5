@@ -3,9 +3,6 @@
 #include <UDP_Com.h>
 #include <iostream>
 
-
-
-
 float* MotionPlanning::GetPosition(float t){
     static float Position[2];
     Position[0] = a[0][0] + (a[0][1]*t) + (a[0][2]*(t*t)) + (a[0][3]*(t*t*t));
@@ -28,16 +25,16 @@ float* MotionPlanning::GetAcceleration(float t){
 }
 
 void MotionPlanning::InitiateTestData(){
-    DP[0][0] = 0.9; //X0
-    DP[0][1] = 0.5; //Y0
+    DP[0][0] = 0.8; //X0
+    DP[0][1] = 1.0; //Y0
     DP[0][2] = 0; //T0
     
-    DP[1][0] = 0.4; //X1
-    DP[1][1] = 1.2; //Y1
+    DP[1][0] = -0.8; //X1
+    DP[1][1] = 1.0; //Y1
     DP[1][2] = 1; //T1
 
-    DP[2][0] = -0.5;
-    DP[2][1] = 0;
+    DP[2][0] = 5;
+    DP[2][1] = -3;
     DP[2][2] = 2;
 }
 
@@ -52,7 +49,7 @@ float MotionPlanning::CalculateDesiredVelocity(float x1, float y1, float x2, flo
     
     float DesiredDirX = x3 - x1;
     float DesiredDirY = y3 - y1;
-    float DesiredDirLength = sqrt((DesiredDirX*DesiredDirX) + (DesiredDirY + DesiredDirY));
+    float DesiredDirLength = sqrt((DesiredDirX*DesiredDirX) + (DesiredDirY*DesiredDirY));
 
     DesiredDirX = DesiredDirX/DesiredDirLength;
     DesiredDirY = DesiredDirY/DesiredDirLength;
@@ -72,13 +69,9 @@ void MotionPlanning::ComputeA(){
     //Calculate desired velocities in X and Y directions.    
     float velX = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1],DP[2][0], DP[2][1], DP[0][2], DP[1][2], 'x');
     float velY = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1],DP[2][0], DP[2][1], DP[0][2], DP[1][2], 'y');
-    //std::cout << CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1], DP[0][2], DP[1][2], 'x') << std::endl;
 
-    //
     float velXi = LastVel[0];
     float velYi = LastVel[1];
-    //float velXi = (DP[1][0] - DP[0][0])/t;
-    //float velYi = (DP[1][1] - DP[0][1])/t;
     
     // define x
     a[0][0] = (DP[0][0]*(DP[1][2]*DP[1][2]*DP[1][2]) - DP[1][0]*(DP[0][2]*DP[0][2]*DP[0][2]) - velX*(DP[1][2]*DP[1][2])*(DP[0][2]*DP[0][2]) + velXi*(DP[1][2]*DP[1][2])*(DP[0][2]*DP[0][2]) + 3*DP[1][0]*DP[1][2]*(DP[0][2]*DP[0][2]) - 3*DP[0][0]*(DP[1][2]*DP[1][2])*DP[0][2] + velX*DP[1][2]*(DP[0][2]*DP[0][2]*DP[0][2]) - velXi*(DP[1][2]*DP[1][2]*DP[1][2])*DP[0][2])/((DP[1][2] - DP[0][2])*((DP[1][2]*DP[1][2]) - 2*DP[1][2]*DP[0][2] + (DP[0][2]*DP[0][2])));
