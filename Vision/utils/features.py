@@ -156,4 +156,4 @@ def test3():
     plt.axis('off')
     plt.show()
     
-test3()
+#test3()

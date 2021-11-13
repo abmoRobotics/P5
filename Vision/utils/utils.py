@@ -4,7 +4,7 @@ from utils.dataset import CarvanaDataset
 from torch.utils.data import DataLoader
 from model.model import UNET
 
-def save_checkpoint(state, filename="model/crack500BrightnessAugmentation3depth.pth.tar"):
+def save_checkpoint(state, filename="model/crack500BrightnessAugmentationv2.pth.tar"):
     print("=> Saving checkpoint")
     torch.save(state, filename)
 
