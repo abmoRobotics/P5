@@ -22,7 +22,7 @@ NUM_WORKERS = 4
 IMAGE_HEIGHT = 320 #160*2  # 1280 originally
 IMAGE_WIDTH = 480#240*2  # 1918 originally
 PIN_MEMORY = True
-LOAD_MODEL = True
+LOAD_MODEL = False
 TRAIN_IMG_DIR = "data/train_images/"
 TRAIN_MASK_DIR = "data/train_masks/"
 VAL_IMG_DIR = "data/val_images/"
@@ -98,7 +98,7 @@ def main():
     )
 
     if LOAD_MODEL:
-        load_checkpoint(torch.load("model/crack500BrightnessAugmentation3depth.pth.tar"), model)
+        load_checkpoint(torch.load("model/crack500BrightnessAugmentationv2.pth.tar"), model)
 
 
     check_accuracy(val_loader, model, device=DEVICE)
@@ -129,9 +129,12 @@ def main():
             val_loader, model, folder="tests/saved_images/", device=DEVICE
             )
         
-        if epoch == 20:
+        if epoch == 30:
             print("Changing learning rate to 1e-5")
             optimizer.param_groups[0]['lr'] = 1e-5
+        if epoch == 60:
+            print("Changing learning rate to 1e-6")
+            optimizer.param_groups[0]['lr'] = 1e-6
         
         print(f"EPOCH: {epoch}/{NUM_EPOCHS}")
 
