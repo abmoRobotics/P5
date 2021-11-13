@@ -21,6 +21,7 @@ int main(int argc, char const *argv[])
     int rounds = 0;
     char c;
     char character;
+
     while(1){
 
         system("stty raw");
@@ -53,14 +54,14 @@ int main(int argc, char const *argv[])
         case 'm':  // m key -> higher pos
         std::cout << "Higher pos" << std::endl;
         TEST.UpdatePosition(0.4, 1.2);
-        TEST.UpdateTime(2, 4);
+        TEST.UpdateTime(1, 0 + rounds);
         TEST.UpdateCrackDet(1);
         break;
 
         case 'n':  // n key -> higher pos
         std::cout << "Lower pos" << std::endl;
         TEST.UpdatePosition(-0.4, 2.0);
-        TEST.UpdateTime(3, 5);
+        TEST.UpdateTime(1, 0);
         TEST.UpdateCrackDet(1.0);
         break;
 

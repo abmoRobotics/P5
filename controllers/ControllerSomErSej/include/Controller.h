@@ -24,7 +24,7 @@ private:
 public:
     Controller(/* args */);
     void LinearMove(float x, float y);
-    void FastMove(float x, float y);
+    void FastMove(float x, float y, bool PosCheck);
    // ~Controller();
     
     webots::Robot *robot; //whats the need?
