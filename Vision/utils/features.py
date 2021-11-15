@@ -155,7 +155,7 @@ def test3(img):
     # plt.axis('off')
     # plt.show()
 
-def test4(img):
+def skeletonization_with_threshold(img):
     (thresh, blackAndWhiteImage) = cv2.threshold(img, 127, 1, cv2.THRESH_BINARY)
 
     contours = closing(blackAndWhiteImage)
@@ -176,6 +176,41 @@ def region_array(img):
             region_arr.append(region)
     return region_arr
 
+def convolve(image, kernel):
+	image = (image).astype(np.uint8)
+	# grab the spatial dimensions of the image, along with
+	# the spatial dimensions of the kernel
+	(iH, iW) = image.shape[:2]
+	(kH, kW) = kernel.shape[:2]
+	# allocate memory for the output image, taking care to
+	# "pad" the borders of the input image so the spatial
+	# size (i.e., width and height) are not reduced
+	pad = (kW - 1) // 2
+	image = cv2.copyMakeBorder(image, pad, pad, pad, pad,
+		cv2.BORDER_REPLICATE)
+	output = np.zeros((iH, iW), dtype="float32")
+    
+    	# loop over the input image, "sliding" the kernel across
+	# each (x, y)-coordinate from left-to-right and top to
+	# bottom
+	for y in np.arange(pad, iH + pad):
+		for x in np.arange(pad, iW + pad):
+			# extract the ROI of the image by extracting the
+			# *center* region of the current (x, y)-coordinates
+			# dimensions
+			roi = image[y - pad:y + pad + 1, x - pad:x + pad + 1]
+			# perform the actual convolution by taking the
+			# element-wise multiplicate between the ROI and
+			# the kernel, then summing the matrix
+			k = (roi * kernel).sum()
+			# store the convolved value in the output (x,y)-
+			# coordinate of the output image
+			if k > 12:
+			    output[y - pad, x - pad] = k
+
+	return output
+            
+
 def find_branch(img):
     print(img.shape[0])
     print(img.shape[1])
@@ -183,22 +218,26 @@ def find_branch(img):
     kernel = np.array( [[1, 1, 1],
                         [1, 1, 1],
                         [1, 1, 1]])
-    for x in range(1, img.shape[1]):
-        for y in range(1, img.shape[0]):
+    for y in range(1, img.shape[0]):
+        sum = 0
+        for x in range(1, img.shape[1]):
             pass
     
     return img
 
 img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L') 
 #img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160222_081102_1921_1.png").convert('L') 
-
+kernel = np.array( [[1, 1, 1],
+                    [1, 10, 1],
+                    [1, 1, 1]])
 img = np.array(img)
 img = closing(img)
-skeleton = test4(img)
-#skeleton2 = find_branch(img)
+skeleton = skeletonization_with_threshold(img)
+skeleton2 = convolve(skeleton, kernel)
 #preds = (img2*255).astype(np.uint8)
 
 preds = region_array(skeleton)
+
 
 
 
@@ -232,7 +271,11 @@ preds = region_array(skeleton)
 #     print(point)
 #for idx, cnt in enumerate(contours):
 #    cv2.drawContours(preds,[cnt],0,(255,0,0),5)
-
-plt.imshow(skeleton)
+fig, axs = plt.subplots(1,2)
+fig.suptitle('Vertically stacked subplots')
+axs[0].imshow(skeleton)
+axs[1].imshow(skeleton2)
+# plt.imshow(skeleton)
+# plt.imshow(skeleton2)
 plt.axis('off')
 plt.show()
