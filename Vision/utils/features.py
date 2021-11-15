@@ -204,10 +204,3 @@ print(white)
 plt.imshow(preds)
 plt.axis('off')
 plt.show()
-while 1:
-    cv2.imshow("hej",preds)
-    cv2.waitKey(20)
-
-# plt.imshow(img)
-# plt.axis('off')
-# plt.show()

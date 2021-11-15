@@ -18,8 +18,8 @@ from utils.utils import load_model
 
 # hyperparameters
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-IMAGE_HEIGHT = 256
-IMAGE_WIDTH = 384
+IMAGE_HEIGHT = 320
+IMAGE_WIDTH = 480
 
 #Transforms
 detect_transform = A.Compose(
@@ -57,15 +57,10 @@ while rval:
     output = torch.sigmoid(model(data))
     output = torch.squeeze(output)
     preds = (output > 0.5).float()
-    preds = closing(preds.cpu().numpy())
-    s1 = time.time()
-    preds = skeletonization(preds)
-    s2 = time.time()
-    print(s2-s1)
-    preds = (preds*255).astype(np.uint8)
-    s3 = time.time()
-    print(s3-s2)
-    cv2.imshow("preview", preds)
+    # preds = closing(preds.cpu().numpy())
+    # preds = skeletonization(preds)
+    # preds = (preds*255).astype(np.uint8)
+    cv2.imshow("preview", preds.cpu().numpy())
     cv2.imshow("normal", frame)
     key = cv2.waitKey(1)
     print("FPS: ", 1.0 / (time.time() - start_time))

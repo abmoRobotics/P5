@@ -1,3 +1,5 @@
+#include <vector>
+
 class MotionPlanning
 {
 private:
@@ -17,11 +19,10 @@ MotionPlanning(){
     LastVel[1] = 0;
 }
 
-
 void InitiateTestData();
 void ComputeA();
 float* GetPosition(float t);
 float* GetVelocity(float t);
 float* GetAcceleration(float t);
-
+void Tester(std::vector<std::vector<float>>);
 };
