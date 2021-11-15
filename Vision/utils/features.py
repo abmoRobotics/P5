@@ -1,4 +1,5 @@
 
+from os import environ
 import cv2
 from PIL import Image
 import numpy as np
@@ -164,29 +165,60 @@ def test4(img):
 
     return skeleton
 
+def region_array(img):
+    labels, num = measure.label(img,connectivity=2,return_num=True)
 
+    region_arr =[]
+    for i in range(0,num):
+        region = np.where((labels[:]==i+1))
+        if len(region[0]) > 1:
+            region = list(zip(region[1], region[0]))
+            region_arr.append(region)
+    return region_arr
 
+def find_branch(img):
+    print(img.shape[0])
+    print(img.shape[1])
+    
+    kernel = np.array( [[1, 1, 1],
+                        [1, 1, 1],
+                        [1, 1, 1]])
+    for x in range(1, img.shape[1]):
+        for y in range(1, img.shape[0]):
+            pass
+    
+    return img
 
-#img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L') 
-img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160222_081102_1921_1.png").convert('L') 
-
+img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L') 
+#img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160222_081102_1921_1.png").convert('L') 
 
 img = np.array(img)
+img = closing(img)
+skeleton = test4(img)
+#skeleton2 = find_branch(img)
+#preds = (img2*255).astype(np.uint8)
+
+preds = region_array(skeleton)
 
 
-img2 = test4(img)
-preds = (img2*255).astype(np.uint8)
+
+# if (i+2.x < i.x) and (i+1.x == i.x)
+# 	arr.append(i+1)
+# else
+# 	arr.append(i)
+        #print(pred[1]) 
+# preds = (img2*255).astype(np.uint8)
 #contours, hierarchy = cv2.findContours(preds,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 #area = cv2.contourArea(contours)
 #cv2.drawContours(preds,[contours[0]],0,(255,0,0),5)
 # yx_cords= np.column_stack(np.where(preds > 0))
 
-a = measure.label(preds,connectivity=2)
-white=np.where((a[:]==1))
+# a = measure.label(preds,connectivity=2)
+# white=np.where((a[:]==1))
 
 
 
-print(white)
+# print(white)
 # r,l=cv2.connectedComponents(preds)
 # # white=np.where((preds[:]==255))
 # print(l)
@@ -201,6 +233,6 @@ print(white)
 #for idx, cnt in enumerate(contours):
 #    cv2.drawContours(preds,[cnt],0,(255,0,0),5)
 
-plt.imshow(preds)
+plt.imshow(skeleton)
 plt.axis('off')
 plt.show()
