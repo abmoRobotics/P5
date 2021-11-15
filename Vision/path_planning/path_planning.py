@@ -15,6 +15,7 @@ PIXEL_INCREMENT = HEIGHT*INCREMENT
 def find_path(frame):
     # Path plan until next frame is ready
     while not frame._next_frame_ready() and not frame.cracks_done():
+        
         # Get the object where the first crack begins
         max_pixel, obj_index = frame._largest_y_value()
         
@@ -40,7 +41,7 @@ def find_path(frame):
             else:
                 frame.path.append(frame.cracks[obj_index].get_current_crack())
                 frame.cracks[obj_index].repair()
-
+        
     return frame
 
 def test():

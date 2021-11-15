@@ -1,10 +1,6 @@
 from frame import Frame
 from crack import Crack
 
-
-
-
-
 # Funktion der transfer information fra en frame
 # INPUTS:
     # 1. frame 1
@@ -12,12 +8,6 @@ from crack import Crack
     # 3. hvor mange frames de er forskudt
     # 4.   
 # 
-
-
-
-
-
-
 def transfer_frame(frame1: Frame, frame2: Frame,):
     pass
 
@@ -26,6 +16,8 @@ def transfer_frame(frame1: Frame, frame2: Frame,):
 # Determines which cracks must be transfered
 def map_cracks(frame1: Frame, frame2: Frame, offset: int):
     '''Maps cracks from frame 1 to frame 2'''
+
+    # First the function maps crack from frame 1 to frame 2.
     mapped_cracks = []
     for i, crack_frame1 in enumerate(frame1.cracks):
         if crack_frame1.crack_in_next_frame():
@@ -40,21 +32,19 @@ def map_cracks(frame1: Frame, frame2: Frame, offset: int):
                     index = idx
             mapped_cracks.append({"old_frame": i, "new_frame": index})
 
-    ##
+    # Secondly the function marks the transfered "repaired" cracks from frame 1 to frame 2 and marks them as repaired
     for cracks in mapped_cracks:
         old_crack_id = cracks['old_frame']
         new_crack_id = cracks['new_frame']
 
         frame1_current_crack = frame1.cracks[old_crack_id].get_current_crack()
-        #print(frame1_current_crack)
         while not frame2.cracks[new_crack_id].is_done():
             if ((frame2.cracks[new_crack_id].get_current_crack())[1] <= frame1_current_crack[1] - offset):
+                # Marks the current point in the crack as "repaired"
                 frame2.cracks[new_crack_id].repair()
             else:
-                print(frame1_current_crack)
-                print(frame2.cracks[new_crack_id].get_current_crack())
+                # Indicates that this is the start/end of a crack
                 frame2.cracks[new_crack_id].shift()
-                print("hej")
                 break
 
     return mapped_cracks

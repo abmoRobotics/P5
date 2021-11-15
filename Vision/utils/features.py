@@ -23,9 +23,8 @@ def skeletonization(img):
     return skeleton
 
 def find_length_of_skeletonization(img):
-    #mask = img.data > 1
-    fil = FilFinder2D(img)
-    return fil
+    pass
+
 # Function for calculating the avergage width of a crack
 def crack_width(img):
     contours, hierarchy = cv2.findContours(img,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -117,7 +116,7 @@ def find_branches(image, preds):
     image = cv2.copyMakeBorder(image, pad, pad, pad, pad,
         cv2.BORDER_REPLICATE)
 
-
+    
     for point in preds:
         x = point[0]+pad
         y = point[1]+pad
@@ -143,41 +142,68 @@ def sort_branch(regions):
 
         order = list(nx.dfs_preorder_nodes(T, 0))
         #print(region)
-        sorted_crack = [region[i] for i in order]
+        sorted_crack = [list(region[i]) for i in order]
         #region = region[order]
         crack_cords.append(sorted_crack)
 
     return crack_cords
 
-# #img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L') 
-# img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160222_081102_1921_1.png").convert('L') 
-# img = np.array(img)
-# img = closing(img)
+# Input must be binary
+def process_image(img):
+    # Get skeleton
+    skeleton = skeletonize(img) # 12 ms
 
-# # Get skeleton
-# skeleton = skeletonization_with_threshold(img)
+    # Extract array with pixels from skeleton
+    skeleton_points = np.where(skeleton[:]==1) # 1 ms
 
-# # Extract array with pixels from skeleton
-# skeleton_points = np.where(skeleton[:]==1)
+    # Convert to (x, y)
+    skeleton_points = list(zip(skeleton_points[1], skeleton_points[0])) # 0 ms
 
-# # Convert to (x, y)
-# skeleton_points = list(zip(skeleton_points[1], skeleton_points[0]))
+    # Find branches
+    skeleton_branches = find_branches(skeleton, skeleton_points) # 5 ms
 
-# # Find branches
-# skeleton_branches = find_branches(skeleton, skeleton_points)
+    # Find regions
+    regions = region_array(skeleton_branches) # 3 ms 
 
-# # Find regions
-# regions = region_array(skeleton_branches)
+    # Sort regions WAITING FOR JESPER
+    sorted_cracks = sort_branch(regions) # 9 ms
 
-# # Sort regions WAITING FOR JESPER
-# sorted_cracks = sort_branch(regions)
+    return sorted_cracks
+
+if __name__ == "__main__":    
+    img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L') 
+    #img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160222_081102_1921_1.png").convert('L') 
+    img = np.array(img)
+    (thresh, blackAndWhiteImage) = cv2.threshold(img, 127, 1, cv2.THRESH_BINARY)
+    binary_image = closing(blackAndWhiteImage)
+    t1 = time.time()
+    sorted_cracks = process_image(binary_image)
+    print(time.time()-t1)
+    print(sorted_cracks[0])
+    # # Get skeleton
+    # skeleton = skeletonization_with_threshold(img)
+
+    # # Extract array with pixels from skeleton
+    # skeleton_points = np.where(skeleton[:]==1)
+
+    # # Convert to (x, y)
+    # skeleton_points = list(zip(skeleton_points[1], skeleton_points[0]))
+
+    # # Find branches
+    # skeleton_branches = find_branches(skeleton, skeleton_points)
+
+    # # Find regions
+    # regions = region_array(skeleton_branches)
+
+    # # Sort regions WAITING FOR JESPER
+    # sorted_cracks = sort_branch(regions)
 
 
-# fig, axs = plt.subplots(1,2)
-# fig.suptitle('Vertically stacked subplots')
-# axs[0].imshow(skeleton)
-# axs[1].imshow(skeleton_branches)
-# # plt.imshow(skeleton)
-# # plt.imshow(skeleton2)
-# plt.axis('off')
-# plt.show()
+    # fig, axs = plt.subplots(1,2)
+    # fig.suptitle('Vertically stacked subplots')
+    # axs[0].imshow(skeleton)
+    # axs[1].imshow(skeleton_branches)
+    # # plt.imshow(skeleton)
+    # # plt.imshow(skeleton2)
+    # plt.axis('off')
+    # plt.show()
