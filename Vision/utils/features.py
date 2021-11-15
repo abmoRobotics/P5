@@ -3,7 +3,7 @@ import cv2
 from PIL import Image
 import numpy as np
 from skimage.morphology import medial_axis, skeletonize
-from skimage import data
+from skimage import data, measure
 import matplotlib.pyplot as plt
 from skimage.util import invert
 import time
@@ -167,21 +167,47 @@ def test4(img):
 
 
 
-img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L') 
+#img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L') 
+img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160222_081102_1921_1.png").convert('L') 
+
+
 img = np.array(img)
 
 
 img2 = test4(img)
 preds = (img2*255).astype(np.uint8)
-contours, hierarchy = cv2.findContours(preds,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+#contours, hierarchy = cv2.findContours(preds,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 #area = cv2.contourArea(contours)
-cv2.drawContours(preds,[contours[0]],0,(255,0,0),5)
+#cv2.drawContours(preds,[contours[0]],0,(255,0,0),5)
+# yx_cords= np.column_stack(np.where(preds > 0))
 
-for point in contours[0]:
-    print(point)
+a = measure.label(preds,connectivity=2)
+white=np.where((a[:]==1))
+
+
+
+print(white)
+# r,l=cv2.connectedComponents(preds)
+# # white=np.where((preds[:]==255))
+# print(l)
+# for k in yx_cords:
+#     print(k)
+#print(yx_cords[0][1][1])
+# for k in preds:
+#     print(k)
+#print(preds[350,1])
+# for point in contours[0]:
+#     print(point)
 #for idx, cnt in enumerate(contours):
 #    cv2.drawContours(preds,[cnt],0,(255,0,0),5)
 
-plt.imshow(img2)
+plt.imshow(preds)
 plt.axis('off')
 plt.show()
+while 1:
+    cv2.imshow("hej",preds)
+    cv2.waitKey(20)
+
+# plt.imshow(img)
+# plt.axis('off')
+# plt.show()
