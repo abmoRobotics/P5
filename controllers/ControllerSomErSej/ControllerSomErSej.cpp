@@ -55,8 +55,7 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
         }
 
     }
-    
-    
+
     float* PositionToMove = Motion.GetPosition(time-ptime);
 
     // std::cout << "X:" << PositionToMove[0] << " Y:" << PositionToMove[1] << " Iteration:" << iteration << " Time:" << time-ptime << std::endl;
@@ -102,6 +101,12 @@ void Communication(){ // Udlede positioner og tider fra vision
 
 int main(int argc, char **argv)
 {
+
+
+  float mha = 0.123456789123456789123456789123456789123456789123456789L;
+
+  std::cout << sizeof(mha) << " " << mha << std::endl;
+
 
   // File pointer
   std::fstream fin;
@@ -155,8 +160,6 @@ int main(int argc, char **argv)
     px = x;
     py = y;
 
-    // std::cout << "bbb" << tempdata.at(2) << std::endl;
-
     if (tempdata.at(2).at(0) == 'T')
     {
       s = 1;
@@ -164,9 +167,9 @@ int main(int argc, char **argv)
 
     if (s == 1)
     {
-      t+=3*sqrt((XS*XS)+(YS*YS))*0.2;
+      t+=5*sqrt((XS*XS)+(YS*YS))*0.2;
     } else{
-      t+=3*sqrt((XS*XS)+(YS*YS));
+      t+=5*sqrt((XS*XS)+(YS*YS));
     }
     
     tempVector.push_back(x);
