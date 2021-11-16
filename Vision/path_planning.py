@@ -5,6 +5,8 @@ import numpy as np
 import cv2
 import numpy as np
 import concurrent.futures
+from imageAligner import imageAlignerCPU
+from path_planning import frame
 # import torchvision
 # from torchvision import transforms
 # import albumentations as A
@@ -13,7 +15,10 @@ import concurrent.futures
 # from utils.utils import load_model
 # from albumentations.pytorch import ToTensorV2
 # import torch
-# from utils.features import process_image
+from utils.features import process_image
+from path_planning.frame import Frame
+from path_planning.crack import Crack
+from path_planning.path_planning import (find_path, visualize)
 #Transforms
 # detect_transform = A.Compose(
 #         [
@@ -75,6 +80,9 @@ def thread_get_image():
 
 
 def thread_path_plan():
+    print("Thread2")
+    img_old_seg = 0
+
     while True:
         img_event.wait()    # Wait for new image
         img_event.clear()   # Clear event
@@ -83,16 +91,27 @@ def thread_path_plan():
         with img_lock:
             local_img = img_segmented
 
-        process_image(local_img)
+        sorted_cracks = process_image(local_img)
 
-        # ALIGN AND PATH PLANNING
+        if not img_old_seg == 0:
+            traveled, overlapHeight = imageAlignerCPU(img_old_seg, local_img)
+            img_old_seg = local_img
+            
 
+        frame1 = Frame()
+
+        for crack in sorted_cracks:
+            frame1.add_crack(Crack(crack))
 
         # Set data if lock is free
         with path_lock:
-            path_transmit = [[2,3],[2,4]]
+            path_transmit = find_path(frame1)
             transmit_event.set()    # Set event true
-    
+
+        if traveled > 1:
+                return traveled, overlapHeight
+        else:
+                return 0,0
     
 
 def thread_transmit_trajectory():
