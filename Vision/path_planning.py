@@ -3,31 +3,32 @@ from threading import Thread, Lock, Event
 import time
 import numpy as np
 import cv2
-import torchvision
-from torchvision import transforms
-import albumentations as A
 import numpy as np
 import concurrent.futures
-from vimba import *
-from utils.utils import load_model
-from albumentations.pytorch import ToTensorV2
-import torch
-from utils.features import process_image
+# import torchvision
+# from torchvision import transforms
+# import albumentations as A
+
+# from vimba import *
+# from utils.utils import load_model
+# from albumentations.pytorch import ToTensorV2
+# import torch
+# from utils.features import process_image
 #Transforms
-detect_transform = A.Compose(
-        [
-            A.Resize(height=480, width=320),
-            A.Normalize(
-                mean=[0.0, 0.0, 0.0],
-                std=[1.0, 1.0, 1.0],
-                max_pixel_value=255.0,
-            ),
-            ToTensorV2(),
-        ],
-    )
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-# Load the trained model
-model = load_model("model/crack500BrightnessAugmentation.pth.tar")
+# detect_transform = A.Compose(
+#         [
+#             A.Resize(height=480, width=320),
+#             A.Normalize(
+#                 mean=[0.0, 0.0, 0.0],
+#                 std=[1.0, 1.0, 1.0],
+#                 max_pixel_value=255.0,
+#             ),
+#             ToTensorV2(),
+#         ],
+#     )
+# DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+# # Load the trained model
+# model = load_model("model/crack500BrightnessAugmentation.pth.tar")
 
 # Parameters
 SIZE = 480, 320
@@ -48,29 +49,29 @@ path_transmit = []
 def thread_get_image():
     print("Thread1")
     
-    with Vimba.get_instance() as vimba:
-        with vimba.get_camera_by_id("50-0536877557") as cam:
-            while(1):
-                # Get frame from camera
-                frame = cam.get_frame()
-                frame.convert_pixel_format(PixelFormat.Bgr8)
-                frame = frame.as_opencv_image
-                augmentented = detect_transform(image=frame)
-                data = augmentented["image"].to(device=DEVICE)
-                data = torch.unsqueeze(data,0)
-                output = torch.sigmoid(model(data))
-                output = torch.squeeze(output)
-                preds = (output > 0.5).float()
-                # preds = closing(preds.cpu().numpy())
-                # preds = skeletonization(preds)
-                # preds = (preds*255).astype(np.uint8)
-                cv2.imshow("preview", preds.cpu().numpy())
-                cv2.imshow("normal", frame)
-                cv2.waitKey(1)
-                # Set data if lock is free 
-                with img_lock:
-                    img_segmented = 0
-                    img_event.set()
+    # with Vimba.get_instance() as vimba:
+    #     with vimba.get_camera_by_id("50-0536877557") as cam:
+    #         while(1):
+    #             # Get frame from camera
+    #             frame = cam.get_frame()
+    #             frame.convert_pixel_format(PixelFormat.Bgr8)
+    #             frame = frame.as_opencv_image
+    #             augmentented = detect_transform(image=frame)
+    #             data = augmentented["image"].to(device=DEVICE)
+    #             data = torch.unsqueeze(data,0)
+    #             output = torch.sigmoid(model(data))
+    #             output = torch.squeeze(output)
+    #             preds = (output > 0.5).float()
+    #             # preds = closing(preds.cpu().numpy())
+    #             # preds = skeletonization(preds)
+    #             # preds = (preds*255).astype(np.uint8)
+    #             cv2.imshow("preview", preds.cpu().numpy())
+    #             cv2.imshow("normal", frame)
+    #             cv2.waitKey(1)
+    #             # Set data if lock is free 
+    #             with img_lock:
+    #                 img_segmented = 0
+    #                 img_event.set()
 
 
 def thread_path_plan():
