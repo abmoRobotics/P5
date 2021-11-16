@@ -101,6 +101,7 @@ def thread_path_plan():
     global path_transmit
     print("Thread2")
     img_old_seg = 0
+    traveled = 0
 
     while True:
         img_seg_event.wait()    # Wait for new image
