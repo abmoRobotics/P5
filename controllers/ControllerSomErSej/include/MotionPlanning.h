@@ -4,13 +4,15 @@ class MotionPlanning
 {
 private:
 
-    double a[2][5];
+    long double a[2][5];
     float DP[3][4];
-    double LastVel[2];
+    long double LastVel[2];
     bool debug = false;
     int numGoals = 0;
 
-    double CalculateDesiredVelocity(double x1, double y1, double x2, double y2, double x3, double y3, double t1, double t2, char coor);
+    bool PolynomialPlanning = false;
+
+    long double CalculateDesiredVelocity(double x1, double y1, double x2, double y2, double x3, double y3, double t1, double t2, char coor);
 
 public:
 
