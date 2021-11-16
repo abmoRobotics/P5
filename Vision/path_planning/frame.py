@@ -1,10 +1,10 @@
-from crack import Crack as cr
+from path_planning.crack import Crack as cr
 
 class Frame():
     # Final path to take
     # path = []
     # Pixel on the y-axis where the next frame begins
-    next_frame = 480*0.75
+    next_frame = 640*0.75
     # all cracks done
     cracks_done = False
     # List of cracks

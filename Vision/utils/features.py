@@ -1,18 +1,17 @@
 
+from os import environ
 import cv2
 from PIL import Image
 import numpy as np
 from skimage.morphology import medial_axis, skeletonize
-from skimage import data
+from skimage import data, measure
 import matplotlib.pyplot as plt
 from skimage.util import invert
 import time
-from fil_finder import FilFinder2D
-from astropy.io import fits
-import astropy.units as u
-import pandas as pd
-from IPython.display import display
+import networkx as nx
+from sklearn.neighbors import NearestNeighbors
 
+#from ..path_planning import frame
 
 def closing(img):
     kernel = np.ones((13,13),np.uint8)
@@ -24,9 +23,8 @@ def skeletonization(img):
     return skeleton
 
 def find_length_of_skeletonization(img):
-    #mask = img.data > 1
-    fil = FilFinder2D(img)
-    return fil
+    pass
+
 # Function for calculating the avergage width of a crack
 def crack_width(img):
     contours, hierarchy = cv2.findContours(img,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -45,7 +43,7 @@ def crack_width(img):
     return contours
 
 # # Billede vi loader for at teste
-def test_func1():
+def test_skeletonize():
     img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L') 
     img = np.array(img)
     (thresh, blackAndWhiteImage) = cv2.threshold(img, 127, 1, cv2.THRESH_BINARY)
@@ -80,81 +78,7 @@ def test_func1():
     #     cv2.imshow("asdf",binary)
     #     cv2.waitKey(20)
 
-
-def test2():
-    img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L') 
-    img = np.array(img)
-    (thresh, blackAndWhiteImage) = cv2.threshold(img, 127, 1, cv2.THRESH_BINARY)
-
-
-    contours = closing(blackAndWhiteImage)
-
-
-    s1 = skeletonize(contours)   
-    binary = (s1*255).astype(np.uint8)
-    dst = cv2.cornerHarris(binary,5,5,0.04)
-    dst = cv2.dilate(dst,None)
-    a = binary + dst
-
-    contours, hierarchy = cv2.findContours(binary,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    for b in contours:
-        print("hej")
-    #binary[dst>0.01*dst.max()]=[0,255,0]
-    # binary[corners>0.01*corners.max()]=[255,0,0]
-    while 1:
-        cv2.imshow("asdf",a)
-        cv2.waitKey(20)
-
-
-def test3(img):
-    (thresh, blackAndWhiteImage) = cv2.threshold(img, 127, 1, cv2.THRESH_BINARY)
-
-    contours = closing(blackAndWhiteImage)
-    skeleton = skeletonize(contours)
-
-    fil = FilFinder2D(skeleton, distance=250 * u.pc, mask=skeleton)
-    fil.preprocess_image(flatten_percent=85)
-    fil.create_mask(border_masking=True, verbose=False,
-    use_existing_mask=True)
-    fil.medskel(verbose=False)
-    fil.analyze_skeletons(branch_thresh=40* u.pix, skel_thresh=10 * u.pix, prune_criteria='length')
-    # for filament in enumerate(fil.filaments):
-    #     print(filament.branch_properties())
-        # for segment in filament['pixels']:
-        #     print(segment[0], end=' ')
-        #     print(segment[-1])
-    # # Show the longest path
-    # plt.imshow(fil.skeleton, cmap='gray')
-    # plt.contour(fil.skeleton_longpath, colors='r')
-    # plt.axis('off')
-    # plt.show()
-
-
-    # plt.imshow(fil.skeleton, cmap='gray')
-
-    # this also works for multiple filaments/skeletons in the image: here only one
-    #print(fil.filaments[0].branch_properties)
-    for idx, filament in enumerate(fil.filaments): 
-        data = filament.branch_properties.copy()
-        data_df = pd.DataFrame(data)
-        data_df['offset_pixels'] = data_df['pixels'].apply(lambda x: x+filament.pixel_extents[0])
-        for segment in data_df['pixels']:
-            print(segment[0], end=' ')
-            print(segment[-1])
-        print(f"Filament: {idx}")
-        display(data_df.head())
-
-        longest_branch_idx = data_df.length.idxmax()
-        longest_branch_pix = data_df.offset_pixels.iloc[longest_branch_idx]
-
-        y,x = longest_branch_pix[:,0],longest_branch_pix[:,1]
-
-    #     plt.scatter(x,y , color='r')
-
-    # plt.axis('off')
-    # plt.show()
-
-def test4(img):
+def skeletonization_with_threshold(img):
     (thresh, blackAndWhiteImage) = cv2.threshold(img, 127, 1, cv2.THRESH_BINARY)
 
     contours = closing(blackAndWhiteImage)
@@ -164,24 +88,122 @@ def test4(img):
 
     return skeleton
 
+def region_array(img):
+    labels, num = measure.label(img,connectivity=2,return_num=True)
+
+    region_arr =[]
+    for i in range(0,num):
+        region = np.where((labels[:]==i+1))
+        if len(region[0]) > 1:
+            region = list(zip(region[1], region[0]))
+            region_arr.append(region)
+    return region_arr
+
+def find_branches(image, preds):
+    kernel = np.array( [[1, 1, 1],
+                    [1, 10, 1],
+                    [1, 1, 1]])
+    image = (image).astype(np.uint8)
+	# grab the spatial dimensions of the image, along with
+	# the spatial dimensions of the kernel
+    (iH, iW) = image.shape[:2]
+    (kH, kW) = kernel.shape[:2]
+	# allocate memory for the output image, taking care to
+	# "pad" the borders of the input image so the spatial
+	# size (i.e., width and height) are not reduced
+    pad = (kW - 1) // 2
+    output = image.copy()
+    image = cv2.copyMakeBorder(image, pad, pad, pad, pad,
+        cv2.BORDER_REPLICATE)
+
+    
+    for point in preds:
+        x = point[0]+pad
+        y = point[1]+pad
+        roi = image[y - pad:y + pad + 1, x - pad:x + pad + 1]
+        k = (roi * kernel).sum()
+        if k > 12:
+                output[y - pad, x - pad] = 0
+        else: 
+            output[y - pad, x - pad] = 1 
+
+    return output
+            
+def sort_branch(regions):
+    crack_cords = []
+    for region in regions:
+        points = region
+        clf = NearestNeighbors(n_neighbors=2,algorithm='auto').fit(points)
+        G = clf.kneighbors_graph()
+
+    
+
+        T = nx.from_scipy_sparse_matrix(G)
+
+        order = list(nx.dfs_preorder_nodes(T, 0))
+        #print(region)
+        sorted_crack = [list(region[i]) for i in order]
+        #region = region[order]
+        crack_cords.append(sorted_crack)
+
+    return crack_cords
+
+# Input must be binary
+def process_image(img):
+    # Get skeleton
+    skeleton = skeletonize(img) # 12 ms
+
+    # Extract array with pixels from skeleton
+    skeleton_points = np.where(skeleton[:]==1) # 1 ms
+
+    # Convert to (x, y)
+    skeleton_points = list(zip(skeleton_points[1], skeleton_points[0])) # 0 ms
+
+    # Find branches
+    skeleton_branches = find_branches(skeleton, skeleton_points) # 5 ms
+
+    # Find regions
+    regions = region_array(skeleton_branches) # 3 ms 
+
+    # Sort regions WAITING FOR JESPER
+    sorted_cracks = sort_branch(regions) # 9 ms
+
+    return sorted_cracks
+
+if __name__ == "__main__":    
+    img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L') 
+    #img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160222_081102_1921_1.png").convert('L') 
+    img = np.array(img)
+    (thresh, blackAndWhiteImage) = cv2.threshold(img, 127, 1, cv2.THRESH_BINARY)
+    binary_image = closing(blackAndWhiteImage)
+    t1 = time.time()
+    sorted_cracks = process_image(binary_image)
+    print(time.time()-t1)
+    print(sorted_cracks[0])
+    # # Get skeleton
+    # skeleton = skeletonization_with_threshold(img)
+
+    # # Extract array with pixels from skeleton
+    # skeleton_points = np.where(skeleton[:]==1)
+
+    # # Convert to (x, y)
+    # skeleton_points = list(zip(skeleton_points[1], skeleton_points[0]))
+
+    # # Find branches
+    # skeleton_branches = find_branches(skeleton, skeleton_points)
+
+    # # Find regions
+    # regions = region_array(skeleton_branches)
+
+    # # Sort regions WAITING FOR JESPER
+    # sorted_cracks = sort_branch(regions)
 
 
-
-img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L') 
-img = np.array(img)
-
-
-img2 = test4(img)
-preds = (img2*255).astype(np.uint8)
-contours, hierarchy = cv2.findContours(preds,cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-#area = cv2.contourArea(contours)
-cv2.drawContours(preds,[contours[0]],0,(255,0,0),5)
-
-for point in contours[0]:
-    print(point)
-#for idx, cnt in enumerate(contours):
-#    cv2.drawContours(preds,[cnt],0,(255,0,0),5)
-
-plt.imshow(img2)
-plt.axis('off')
-plt.show()
+    # fig, axs = plt.subplots(1,2)
+    # fig.suptitle('Vertically stacked subplots')
+    # axs[0].imshow(skeleton)
+    # axs[1].imshow(skeleton_branches)
+    # # plt.imshow(skeleton)
+    # # plt.imshow(skeleton2)
+    # plt.axis('off')
+    # plt.show()

@@ -1,13 +1,13 @@
 
-from frame import Frame
-from crack import Crack
+from path_planning.frame import Frame
+from path_planning.crack import Crack
 import cv2
 import math
 import random
 import numpy as np
 
-HEIGHT = 480
-WIDTH = 320
+HEIGHT = 640
+WIDTH = 360
 INCREMENT = 0.25 # 20% of 1m = 20cm 
 PIXEL_INCREMENT = HEIGHT*INCREMENT
 
@@ -15,6 +15,7 @@ PIXEL_INCREMENT = HEIGHT*INCREMENT
 def find_path(frame):
     # Path plan until next frame is ready
     while not frame._next_frame_ready() and not frame.cracks_done():
+        
         # Get the object where the first crack begins
         max_pixel, obj_index = frame._largest_y_value()
         
@@ -40,7 +41,7 @@ def find_path(frame):
             else:
                 frame.path.append(frame.cracks[obj_index].get_current_crack())
                 frame.cracks[obj_index].repair()
-
+        
     return frame
 
 def test():
@@ -172,35 +173,44 @@ def visualize(frame: Frame, p1, offset):
 
 
 
+if __name__ == "__main__":
+
+
+    from path_planning.utils import map_cracks
+    frame = test()
+    frame0 = test0()
+    find_path(frame)
+    map_cracks(frame,frame0,480*0.75)
+    frame0 = find_path(frame0)
+    frame0Vis = visualize(frame, frame.path,480*0.75)
+    frame1Vis = visualize(frame0, frame0.path,480*0.25)
+
+    # with open('output.txt', 'w') as f:
+    #     for point in frame.path:
+    #         f.write(str(point[0]))
+    #         f.write(",")
+    #         f.write(str(point[1]))
+    #         f.write(",")
+    #         f.write(str(point[2]))
+    #         f.write('\n')
+
+    while 1:
+        cv2.imshow("frame",frame0Vis)
+        cv2.imshow("frame2",frame1Vis)
+        cv2.waitKey(20)
 
 
 
-from utils import map_cracks
-frame = test()
-frame0 = test0()
-find_path(frame)
-map_cracks(frame,frame0,480*0.75)
-frame0 = find_path(frame0)
-frame0Vis = visualize(frame, frame.path,480*0.75)
-frame1Vis = visualize(frame0, frame0.path,480*0.25)
 
-while 1:
-    cv2.imshow("frame",frame0Vis)
-    cv2.imshow("frame2",frame1Vis)
-    cv2.waitKey(20)
-
-
-
-
-frame2 = test3()
-frame1 = test2()
-frame1 = find_path(frame1)
-map_cracks(frame1,frame2,480*0.75)
-frame2 = find_path(frame2)
-frame1Vis = visualize(frame1, frame1.path,480*0.75)
-frame2Vis = visualize(frame2, frame2.path,480*0.25)
-while 1:
-    cv2.imshow("frame",frame1Vis)
-    cv2.imshow("frame2",frame2Vis)
-    cv2.waitKey(20)
+    frame2 = test3()
+    frame1 = test2()
+    frame1 = find_path(frame1)
+    map_cracks(frame1,frame2,480*0.75)
+    frame2 = find_path(frame2)
+    frame1Vis = visualize(frame1, frame1.path,480*0.75)
+    frame2Vis = visualize(frame2, frame2.path,480*0.25)
+    while 1:
+        cv2.imshow("frame",frame1Vis)
+        cv2.imshow("frame2",frame2Vis)
+        cv2.waitKey(20)
 

@@ -21,6 +21,13 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 IMAGE_HEIGHT = 320
 IMAGE_WIDTH = 480
 
+# Encoder parameters
+VELOCITY = 2.22 # m/s 8 km/t
+
+# Camera parameters
+CAMERA_WIDTH = 0.6  # m
+CAMERA_HEIGHT = 1   # m
+
 #Transforms
 detect_transform = A.Compose(
         [

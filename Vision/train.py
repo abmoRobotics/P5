@@ -17,7 +17,7 @@ from utils.utils import (
 LEARNING_RATE = 1e-4 # original 1e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 16
-NUM_EPOCHS = 30
+NUM_EPOCHS = 90
 NUM_WORKERS = 4
 IMAGE_HEIGHT = 320 #160*2  # 1280 originally
 IMAGE_WIDTH = 480#240*2  # 1918 originally
@@ -98,7 +98,7 @@ def main():
     )
 
     if LOAD_MODEL:
-        load_checkpoint(torch.load("model/crack500BrightnessAugmentationv2.pth.tar"), model)
+        load_checkpoint(torch.load("model/crack500BrightnessAugmentationv3.pth.tar"), model)
 
 
     check_accuracy(val_loader, model, device=DEVICE)

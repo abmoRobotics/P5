@@ -96,7 +96,7 @@ def check_accuracy(loader, model):
         masks = torch.squeeze(masks)
         preds = (output > 0.5).float()
 
-        if ( 7 < batch_idx < 9):
+        if ( 7 < batch_idx < 13):
             torchvision.utils.save_image(preds, f"tests/test_images/pred{batch_idx}.png")
             torchvision.utils.save_image(masks, f"tests/test_images/{batch_idx}.png")
             torchvision.utils.save_image(data, f"tests/test_images/original{batch_idx}.png")
@@ -114,7 +114,7 @@ def check_accuracy(loader, model):
 def main():
     test_loader = get_testDS()
     # loop = tqdm(test_loader)
-    model = load_model("model/model1.pth.tar")
+    model = load_model("model/crack500BrightnessAugmentationv2.pth.tar")
 
     IoU, F1 = check_accuracy(test_loader, model)
     print(F1)
