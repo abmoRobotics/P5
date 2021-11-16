@@ -15,14 +15,6 @@ import torch
 from utils.features import process_image
 from imageAligner import imageAlignerCPU
 from path_planning import frame
-# import torchvision
-# from torchvision import transforms
-# import albumentations as A
-
-# from vimba import *
-# from utils.utils import load_model
-# from albumentations.pytorch import ToTensorV2
-# import torch
 from utils.features import process_image
 from path_planning.frame import Frame
 from path_planning.crack import Crack
