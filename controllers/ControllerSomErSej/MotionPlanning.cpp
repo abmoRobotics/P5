@@ -5,19 +5,110 @@
 #include <vector>
 
 
-void MotionPlanning::Tester(std::vector<std::vector<float>> GoalsVector){
+void MotionPlanning::Plan(std::vector<std::vector<float>> GoalsVector, double PresentTime){
     //Test to see if goals can be send between 
-            for (size_t i = 0; i < GoalsVector.size(); i++) //four iterations
+    // for (size_t i = 0; i < GoalsVector.size(); i++) //four iterations
+    // {
+    //         std::cout << "Timeset for robot in MotionPlanning: " << GoalsVector[0][2] << ".  Pos x: " << GoalsVector[0][0] << std::endl;
+    // }
+
+    numGoals = GoalsVector.size();
+
+    if (numGoals > 0){
+        if ((DP[0][0] != GoalsVector.at(0).at(0) || DP[0][1] != GoalsVector.at(0).at(1) || DP[0][2] != GoalsVector.at(0).at(2)) && PresentTime > DP[0][2])
         {
-              std::cout << "Timeset for robot in MotionPlanning: " << GoalsVector[0][2] << ".  Pos x: " << GoalsVector[0][0] << std::endl;
+            if (numGoals == 0) { //If Goal vector is empty, then do nothing.
+                DP[0][0] = 0; //X0
+                DP[0][1] = 0; //Y0
+                DP[0][2] = 0; //T0
+                DP[0][3] = 0;
+                
+                DP[1][0] = 0; //X1
+                DP[1][1] = 0; //Y1
+                DP[1][2] = 0; //T1
+                DP[1][3] = 0;
+
+                DP[2][0] = 0;
+                DP[2][1] = 0;
+                DP[2][2] = 0;
+                DP[2][3] = 0;
+            } else if (numGoals == 1) { //If one goal is present, move linearly to goal.
+                DP[0][0] = GoalsVector.at(0).at(0); //X1
+                DP[0][1] = GoalsVector.at(0).at(1); //Y1
+                DP[0][2] = GoalsVector.at(0).at(2); //T1
+                DP[0][3] = GoalsVector.at(0).at(3);
+                
+                DP[1][0] = 0; //X1
+                DP[1][1] = 0; //Y1
+                DP[1][2] = 0; //T1
+                DP[1][3] = 0;
+
+                DP[2][0] = 0;
+                DP[2][1] = 0;
+                DP[2][2] = 0;
+                DP[2][3] = 0;
+
+                a[0][0] = DP[0][0];
+                a[0][1] = 0;
+                a[0][2] = 0;
+                a[0][3] = 0;
+
+                a[1][0] = DP[0][1];
+                a[1][1] = 0;
+                a[1][2] = 0;
+                a[1][3] = 0;
+                
+            } else if (numGoals == 2) { //If two goals are present, move through polynomial to goal, but assume some velocity.
+                DP[0][0] = GoalsVector.at(0).at(0); //X0
+                DP[0][1] = GoalsVector.at(0).at(1); //Y0
+                DP[0][2] = GoalsVector.at(0).at(2); //T0
+                DP[0][3] = GoalsVector.at(0).at(3);
+                
+                DP[1][0] = GoalsVector.at(1).at(0); //X1
+                DP[1][1] = GoalsVector.at(1).at(1); //Y1
+                DP[1][2] = GoalsVector.at(1).at(2); //T1
+                DP[1][3] = GoalsVector.at(1).at(3);
+
+                DP[2][0] = 0;
+                DP[2][1] = 0;
+                DP[2][2] = 0;
+                DP[2][3] = 0;
+
+                ComputeA();
+            } else if (numGoals > 2) { //If more than two goals are present, move through polynomial to goal.
+                DP[0][0] = GoalsVector.at(0).at(0); //X0
+                DP[0][1] = GoalsVector.at(0).at(1); //Y0
+                DP[0][2] = GoalsVector.at(0).at(2); //T0
+                DP[0][3] = GoalsVector.at(0).at(3);
+                
+                DP[1][0] = GoalsVector.at(1).at(0); //X1
+                DP[1][1] = GoalsVector.at(1).at(1); //Y1
+                DP[1][2] = GoalsVector.at(1).at(2); //T1
+                DP[1][3] = GoalsVector.at(1).at(3);
+
+                DP[2][0] = GoalsVector.at(2).at(0);
+                DP[2][1] = GoalsVector.at(2).at(1);
+                DP[2][2] = GoalsVector.at(2).at(2);
+                DP[2][3] = GoalsVector.at(2).at(3);
+
+                std::cout << "Goal: " << DP[0][0] << ", " << DP[0][1] << ", t: " << DP[0][2]<< std::endl;
+                ComputeA();
+            }
+
         }
-       
+        
+    }
+    
+   
 }
 
-float* MotionPlanning::GetPosition(float t){
+float* MotionPlanning::GetPosition(double t){
     static float Position[2];
     Position[0] = a[0][0] + (a[0][1]*t) + (a[0][2]*(t*t)) + (a[0][3]*(t*t*t));
     Position[1] = a[1][0] + (a[1][1]*t) + (a[1][2]*(t*t)) + (a[1][3]*(t*t*t));
+    // std::cout << "X formula: " << a[0][0] << " + " << (a[0][1]*t) << " + " << (a[0][2]*(t*t)) << " + " << (a[0][3]*(t*t*t)) << std::endl;
+    // std::cout << "t: " << t << " t²:" << (t*t) << " t³: " << (t*t*t) << std::endl;
+    // std::cout << "X form:  " << a[0][0] << " + " << a[0][1] << "*t + " << a[0][2] << "*t² + " << a[0][3] << "*t³" << std::endl;
     return Position;
 }
 
@@ -38,29 +129,33 @@ float* MotionPlanning::GetAcceleration(float t){
 void MotionPlanning::InitiateTestData(){
     DP[0][0] = 0.8; //X0
     DP[0][1] = 1.0; //Y0
-    DP[0][2] = 0; //T0
+    DP[0][2] = 0;   //T0
+    DP[0][3] = 0;   //Shift
     
-    DP[1][0] = -0.8; //X1
+    DP[1][0] = -0.8;//X1
     DP[1][1] = 1.0; //Y1
-    DP[1][2] = 1; //T1
+    DP[1][2] = 1;   //T1
+    DP[1][3] = 0;   //Shift
 
-    DP[2][0] = 5;
-    DP[2][1] = -3;
-    DP[2][2] = 2;
+    DP[2][0] = 5;   //X2
+    DP[2][1] = -3;  //Y2
+    DP[2][2] = 2;   //T2
+    DP[2][3] = 0;   //Shift
+
+    numGoals = 3;
 }
 
-float MotionPlanning::CalculateDesiredVelocity(float x1, float y1, float x2, float y2, float x3, float y3, float t1, float t2, char coor){
+double MotionPlanning::CalculateDesiredVelocity(double x1, double y1, double x2, double y2, double x3, double y3, double t1, double t2, char coor){
     
+    double Xdif = x2 - x1;
+    double Ydif = y2 - y1;
+    double distance = sqrt((Xdif*Xdif) + (Ydif*Ydif));
+    double timeDif = t2 - t1;
+    double DesiredVelocity = distance/timeDif;
     
-    float Xdif = x2 - x1;
-    float Ydif = y2 - y1;
-    float distance = sqrt(Xdif*Xdif + Ydif*Ydif);
-    float timeDif = t2 - t1;
-    float DesiredVelocity = distance/timeDif;
-    
-    float DesiredDirX = x3 - x1;
-    float DesiredDirY = y3 - y1;
-    float DesiredDirLength = sqrt((DesiredDirX*DesiredDirX) + (DesiredDirY*DesiredDirY));
+    double DesiredDirX = x3 - x1;
+    double DesiredDirY = y3 - y1;
+    double DesiredDirLength = sqrt((DesiredDirX*DesiredDirX) + (DesiredDirY*DesiredDirY));
 
     DesiredDirX = DesiredDirX/DesiredDirLength;
     DesiredDirY = DesiredDirY/DesiredDirLength;
@@ -77,28 +172,69 @@ float MotionPlanning::CalculateDesiredVelocity(float x1, float y1, float x2, flo
 
 void MotionPlanning::ComputeA(){
 
-    //Calculate desired velocities in X and Y directions.    
-    float velX = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1],DP[2][0], DP[2][1], DP[0][2], DP[1][2], 'x');
-    float velY = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1],DP[2][0], DP[2][1], DP[0][2], DP[1][2], 'y');
+    double velX = 0; 
+    double velY = 0;
 
-    float velXi = LastVel[0];
-    float velYi = LastVel[1];
+    double velXi = LastVel[0];
+    double velYi = LastVel[1];
+
+    //Calculate desired velocities in X and Y directions.
+    if (numGoals > 2) //If more than two goals are present, use point 1 and 3 to determine direction in point 2.
+    {   
+        
+        if (DP[0][3] == 1)
+        {
+            velX = 0;
+            velY = 0;
+            velXi = 0;
+            velYi = 0;
+        } else {
+            velX = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1],DP[2][0], DP[2][1], DP[0][2], DP[1][2], 'x');
+            velY = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1],DP[2][0], DP[2][1], DP[0][2], DP[1][2], 'y');
+        }
+        
+    } else if (numGoals == 2)
+    {   
+        double Ax3 = DP[0][0] + 2*(DP[1][0] - DP[0][0]);
+        double Ay3 = DP[0][1] + 2*(DP[1][1] - DP[0][1]);
+        if (DP[0][3] == 1)
+        {
+            velX = 0;
+            velY = 0;
+            velXi = 0;
+            velYi = 0;
+        } else {
+            velX = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1], Ax3, Ay3 , DP[0][2], DP[1][2], 'x');
+            velY = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1], Ax3, Ay3 , DP[0][2], DP[1][2], 'y');
+        }
+    }
     
+    // velX = 0;
+    // velY = 0;
+    // velXi = 0;
+    // velYi = 0;
+
+    // double Goal1Time = DP[0][2];
+    // double Goal2Time = DP[1][2];
+
+    double Goal1Time = 0;
+    double Goal2Time = DP[1][2] - DP[0][2];
+
     // define x
-    a[0][0] = (DP[0][0]*(DP[1][2]*DP[1][2]*DP[1][2]) - DP[1][0]*(DP[0][2]*DP[0][2]*DP[0][2]) - velX*(DP[1][2]*DP[1][2])*(DP[0][2]*DP[0][2]) + velXi*(DP[1][2]*DP[1][2])*(DP[0][2]*DP[0][2]) + 3*DP[1][0]*DP[1][2]*(DP[0][2]*DP[0][2]) - 3*DP[0][0]*(DP[1][2]*DP[1][2])*DP[0][2] + velX*DP[1][2]*(DP[0][2]*DP[0][2]*DP[0][2]) - velXi*(DP[1][2]*DP[1][2]*DP[1][2])*DP[0][2])/((DP[1][2] - DP[0][2])*((DP[1][2]*DP[1][2]) - 2*DP[1][2]*DP[0][2] + (DP[0][2]*DP[0][2])));
-    a[0][1] = (velXi*(DP[1][2]*DP[1][2]*DP[1][2]) - velX*(DP[0][2]*DP[0][2]*DP[0][2]) - 6*DP[1][0]*DP[1][2]*DP[0][2] + 6*DP[0][0]*DP[1][2]*DP[0][2] - velX*DP[1][2]*(DP[0][2]*DP[0][2]) + 2*velX*(DP[1][2]*DP[1][2])*DP[0][2] - 2*velXi*DP[1][2]*(DP[0][2]*DP[0][2]) + velXi*(DP[1][2]*DP[1][2])*DP[0][2])/((DP[1][2] - DP[0][2])*((DP[1][2]*DP[1][2]) - 2*DP[1][2]*DP[0][2] + (DP[0][2]*DP[0][2])));
-    a[0][2] = (3*DP[1][0]*DP[1][2] - 3*DP[0][0]*DP[1][2] + 3*DP[1][0]*DP[0][2] - 3*DP[0][0]*DP[0][2] - velX*(DP[1][2]*DP[1][2]) - 2*velXi*(DP[1][2]*DP[1][2]) + 2*velX*(DP[0][2]*DP[0][2]) + velXi*(DP[0][2]*DP[0][2]) - velX*DP[1][2]*DP[0][2] + velXi*DP[1][2]*DP[0][2])/((DP[1][2] - DP[0][2])*((DP[1][2]*DP[1][2]) - 2*DP[1][2]*DP[0][2] + (DP[0][2]*DP[0][2])));
-    a[0][3] = -(2*DP[1][0] - 2*DP[0][0] - velX*DP[1][2] - velXi*DP[1][2] + velX*DP[0][2] + velXi*DP[0][2])/((DP[1][2] - DP[0][2])*((DP[1][2]*DP[1][2]) - 2*DP[1][2]*DP[0][2] + (DP[0][2]*DP[0][2])));
+    a[0][0] = (DP[0][0]*(Goal2Time*Goal2Time*Goal2Time) - DP[1][0]*(Goal1Time*Goal1Time*Goal1Time) - velX*(Goal2Time*Goal2Time)*(Goal1Time*Goal1Time) + velXi*(Goal2Time*Goal2Time)*(Goal1Time*Goal1Time) + 3*DP[1][0]*Goal2Time*(Goal1Time*Goal1Time) - 3*DP[0][0]*(Goal2Time*Goal2Time)*Goal1Time + velX*Goal2Time*(Goal1Time*Goal1Time*Goal1Time) - velXi*(Goal2Time*Goal2Time*Goal2Time)*Goal1Time)/((Goal2Time - Goal1Time)*((Goal2Time*Goal2Time) - 2*Goal2Time*Goal1Time + (Goal1Time*Goal1Time)));
+    a[0][1] = (velXi*(Goal2Time*Goal2Time*Goal2Time) - velX*(Goal1Time*Goal1Time*Goal1Time) - 6*DP[1][0]*Goal2Time*Goal1Time + 6*DP[0][0]*Goal2Time*Goal1Time - velX*Goal2Time*(Goal1Time*Goal1Time) + 2*velX*(Goal2Time*Goal2Time)*Goal1Time - 2*velXi*Goal2Time*(Goal1Time*Goal1Time) + velXi*(Goal2Time*Goal2Time)*Goal1Time)/((Goal2Time - Goal1Time)*((Goal2Time*Goal2Time) - 2*Goal2Time*Goal1Time + (Goal1Time*Goal1Time)));
+    a[0][2] = (3*DP[1][0]*Goal2Time - 3*DP[0][0]*Goal2Time + 3*DP[1][0]*Goal1Time - 3*DP[0][0]*Goal1Time - velX*(Goal2Time*Goal2Time) - 2*velXi*(Goal2Time*Goal2Time) + 2*velX*(Goal1Time*Goal1Time) + velXi*(Goal1Time*Goal1Time) - velX*Goal2Time*Goal1Time + velXi*Goal2Time*Goal1Time)/((Goal2Time - Goal1Time)*((Goal2Time*Goal2Time) - 2*Goal2Time*Goal1Time + (Goal1Time*Goal1Time)));
+    a[0][3] = -(2*DP[1][0] - 2*DP[0][0] - velX*Goal2Time - velXi*Goal2Time + velX*Goal1Time + velXi*Goal1Time)/((Goal2Time - Goal1Time)*((Goal2Time*Goal2Time) - 2*Goal2Time*Goal1Time + (Goal1Time*Goal1Time)));
 
     if (debug){
         std::cout << "X formula: " << a[0][0] << " + " << a[0][1] << "*t + " << a[0][2] << "*t² + " << a[0][3] << "*t³" << std::endl;
     }    
 
     // define y
-    a[1][0] = (DP[0][1]*(DP[1][2]*DP[1][2]*DP[1][2]) - DP[1][1]*(DP[0][2]*DP[0][2]*DP[0][2]) - velY*(DP[1][2]*DP[1][2])*(DP[0][2]*DP[0][2]) + velYi*(DP[1][2]*DP[1][2])*(DP[0][2]*DP[0][2]) + 3*DP[1][1]*DP[1][2]*(DP[0][2]*DP[0][2]) - 3*DP[0][1]*(DP[1][2]*DP[1][2])*DP[0][2] + velY*DP[1][2]*(DP[0][2]*DP[0][2]*DP[0][2]) - velYi*(DP[1][2]*DP[1][2]*DP[1][2])*DP[0][2])/((DP[1][2] - DP[0][2])*((DP[1][2]*DP[1][2]) - 2*DP[1][2]*DP[0][2] + (DP[0][2]*DP[0][2]))); 
-    a[1][1] = (velYi*(DP[1][2]*DP[1][2]*DP[1][2]) - velY*(DP[0][2]*DP[0][2]*DP[0][2]) - 6*DP[1][1]*DP[1][2]*DP[0][2] + 6*DP[0][1]*DP[1][2]*DP[0][2] - velY*DP[1][2]*(DP[0][2]*DP[0][2]) + 2*velY*(DP[1][2]*DP[1][2])*DP[0][2] - 2*velYi*DP[1][2]*(DP[0][2]*DP[0][2]) + velYi*(DP[1][2]*DP[1][2])*DP[0][2])/((DP[1][2] - DP[0][2])*((DP[1][2]*DP[1][2]) - 2*DP[1][2]*DP[0][2] + (DP[0][2]*DP[0][2])));
-    a[1][2] = (3*DP[1][1]*DP[1][2] - 3*DP[0][1]*DP[1][2] + 3*DP[1][1]*DP[0][2] - 3*DP[0][1]*DP[0][2] - velY*(DP[1][2]*DP[1][2]) - 2*velYi*(DP[1][2]*DP[1][2]) + 2*velY*(DP[0][2]*DP[0][2]) + velYi*(DP[0][2]*DP[0][2]) - velY*DP[1][2]*DP[0][2] + velYi*DP[1][2]*DP[0][2])/((DP[1][2] - DP[0][2])*((DP[1][2]*DP[1][2]) - 2*DP[1][2]*DP[0][2] + (DP[0][2]*DP[0][2])));
-    a[1][3] = -(2*DP[1][1] - 2*DP[0][1] - velY*DP[1][2] - velYi*DP[1][2] + velY*DP[0][2] + velYi*DP[0][2])/((DP[1][2] - DP[0][2])*((DP[1][2]*DP[1][2]) - 2*DP[1][2]*DP[0][2] + (DP[0][2]*DP[0][2])));   
+    a[1][0] = (DP[0][1]*(Goal2Time*Goal2Time*Goal2Time) - DP[1][1]*(Goal1Time*Goal1Time*Goal1Time) - velY*(Goal2Time*Goal2Time)*(Goal1Time*Goal1Time) + velYi*(Goal2Time*Goal2Time)*(Goal1Time*Goal1Time) + 3*DP[1][1]*Goal2Time*(Goal1Time*Goal1Time) - 3*DP[0][1]*(Goal2Time*Goal2Time)*Goal1Time + velY*Goal2Time*(Goal1Time*Goal1Time*Goal1Time) - velYi*(Goal2Time*Goal2Time*Goal2Time)*Goal1Time)/((Goal2Time - Goal1Time)*((Goal2Time*Goal2Time) - 2*Goal2Time*Goal1Time + (Goal1Time*Goal1Time))); 
+    a[1][1] = (velYi*(Goal2Time*Goal2Time*Goal2Time) - velY*(Goal1Time*Goal1Time*Goal1Time) - 6*DP[1][1]*Goal2Time*Goal1Time + 6*DP[0][1]*Goal2Time*Goal1Time - velY*Goal2Time*(Goal1Time*Goal1Time) + 2*velY*(Goal2Time*Goal2Time)*Goal1Time - 2*velYi*Goal2Time*(Goal1Time*Goal1Time) + velYi*(Goal2Time*Goal2Time)*Goal1Time)/((Goal2Time - Goal1Time)*((Goal2Time*Goal2Time) - 2*Goal2Time*Goal1Time + (Goal1Time*Goal1Time)));
+    a[1][2] = (3*DP[1][1]*Goal2Time - 3*DP[0][1]*Goal2Time + 3*DP[1][1]*Goal1Time - 3*DP[0][1]*Goal1Time - velY*(Goal2Time*Goal2Time) - 2*velYi*(Goal2Time*Goal2Time) + 2*velY*(Goal1Time*Goal1Time) + velYi*(Goal1Time*Goal1Time) - velY*Goal2Time*Goal1Time + velYi*Goal2Time*Goal1Time)/((Goal2Time - Goal1Time)*((Goal2Time*Goal2Time) - 2*Goal2Time*Goal1Time + (Goal1Time*Goal1Time)));
+    a[1][3] = -(2*DP[1][1] - 2*DP[0][1] - velY*Goal2Time - velYi*Goal2Time + velY*Goal1Time + velYi*Goal1Time)/((Goal2Time - Goal1Time)*((Goal2Time*Goal2Time) - 2*Goal2Time*Goal1Time + (Goal1Time*Goal1Time)));   
     
     if (debug){
         std::cout << "Y formula: " << a[1][0] << " + " << a[1][1] << "*t + " << a[1][2] << "*t² + " << a[1][3] << "*t³" << std::endl;

@@ -74,6 +74,10 @@
         "scoped_allocator": "cpp",
         "regex": "cpp",
         "cuchar": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "any": "cpp",
+        "bit": "cpp",
+        "charconv": "cpp",
+        "variant": "cpp"
     }
 }

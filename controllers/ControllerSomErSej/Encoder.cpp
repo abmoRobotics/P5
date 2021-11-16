@@ -13,8 +13,6 @@
 
 std::vector<std::vector<float>> MotionVec;
 
-    
-
 // Alter message from coordinates of two time stamps to coordinates with one time stamp
 std::vector<std::vector<float>> Encoder::Encoding(float posx, float posy, float timedetected, float timeset, float crackDet){
     GetVelocity();
