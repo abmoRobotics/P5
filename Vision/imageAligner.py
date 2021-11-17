@@ -68,9 +68,8 @@ def imageAlignerGPU(imgRef, imgOverlap):
 
 def imageAlignerCPU(img1, img2):
 
-
     #sift = cv2.xfeatures2d.sift_create()
-    MAX_FEATURES = 100
+    MAX_FEATURES = 5000
     sift = cv2.ORB_create(MAX_FEATURES)
 
     # find the key points and descriptors with SIFT
@@ -82,9 +81,17 @@ def imageAlignerCPU(img1, img2):
 
     good = []
     for m,n in matches:
-        if m.distance < 0.03*n.distance:
+        if m.distance < 0.5 * n.distance:
             good.append(m)
+            
+    draw_params = dict(matchColor = (0,255,0), # draw matches in green color
+                    singlePointColor = None,
+                    flags = 2)
 
+    img3 = cv2.drawMatches(img1,kp1,img2,kp2,good,None,**draw_params)
+    #cv2.imshow("original_image_drawMatches.jpg", img3)
+    cv2.imwrite("original_image_drawMatches.jpg",img3)
+            
     MIN_MATCH_COUNT = 10
     if len(good) > MIN_MATCH_COUNT:
         src_pts = np.float32([ kp1[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
@@ -97,6 +104,7 @@ def imageAlignerCPU(img1, img2):
         dst = cv2.perspectiveTransform(pts, M)
         traveled = abs(np.int32(dst[0][0][1]))
         overlapHeight = h - traveled
+        #print("Height image: ", h, " Traveled ", traveled, "Overlap height: ", overlapHeight)
         return traveled, overlapHeight
     else:
         print("Not enought matches are found - %d/%d", (len(good)/MIN_MATCH_COUNT))
@@ -104,12 +112,19 @@ def imageAlignerCPU(img1, img2):
 
 if __name__ == "__main__":
     import time
-    im1 = cv2.imread("test_data/test111.png")
-    im1 = cv2.cvtColor(im1,cv2.COLOR_BGR2GRAY)
-    im2 = cv2.imread("test_data/test222.png")
-    im1 = cv2.cvtColor(im2,cv2.COLOR_BGR2GRAY)
-    t1 = time.time()
-    for i in range (0,100):
 
-        imageAlignerCPU(im1,im2)
+
+    im1 = cv2.imread("test_data/5.png")
+    im1 = cv2.cvtColor(im1,cv2.COLOR_BGR2GRAY)
+    im1 = cv2.resize(im1, (480,320),interpolation=cv2.INTER_AREA)
+    #print(im1.dtype)
+    im2 = cv2.imread("test_data/6.png")
+    im2 = cv2.cvtColor(im2,cv2.COLOR_BGR2GRAY)
+    im2 = cv2.resize(im2, (480,320),interpolation=cv2.INTER_AREA)
+    t1 = time.time()
+    imageAlignerCPU(im1,im2)
+
+
+    # for i in range (0,100):
+    #     imageAlignerCPU(im1,im2)
     print((time.time()-t1)/100)
