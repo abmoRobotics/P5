@@ -87,9 +87,9 @@ void MotionPlanning::Plan(std::vector<std::vector<float>> GoalsVector, double Pr
                 DP[2][3] = GoalsVector.at(2).at(3);
 
                 if(debug){
-                    std::cout << "Goal1: " << DP[0][0] << ", " << DP[0][1] << ", t: " << DP[0][2]<< std::endl;
-                    std::cout << "Goal2: " << DP[1][0] << ", " << DP[1][1] << ", t: " << DP[1][2]<< std::endl;
-                    std::cout << "Goal3: " << DP[2][0] << ", " << DP[2][1] << ", t: " << DP[2][2]<< std::endl;
+                    std::cout << "Goal0: " << DP[0][0] << ", " << DP[0][1] << ", t: " << DP[0][2] << ", EndPoint: " << DP[0][3] << std::endl;
+                    std::cout << "Goal1: " << DP[1][0] << ", " << DP[1][1] << ", t: " << DP[1][2] << ", EndPoint: " << DP[1][3] << std::endl;
+                    std::cout << "Goal2: " << DP[2][0] << ", " << DP[2][1] << ", t: " << DP[2][2] << ", EndPoint: " << DP[2][3] << std::endl;
                 }
 
                 ComputeA();
@@ -180,12 +180,21 @@ void MotionPlanning::ComputeA(){
         if (numGoals > 2) //If more than two goals are present, use point 1 and 3 to determine direction in point 2.
         {   
             
-            if (DP[0][3] == 1)
+            if (DP[0][3] == 1 && DP[1][3] == 1)
             {
                 velX = 0;
                 velY = 0;
                 velXi = 0;
                 velYi = 0;
+            } else if (DP[1][3] == 1 && DP[2][3] == 1){
+                velX = 0;
+                velY = 0;
+            } else if (DP[2][3])
+            {   
+                long double Ax3 = DP[0][0] + 2*(DP[1][0] - DP[0][0]);
+                long double Ay3 = DP[0][1] + 2*(DP[1][1] - DP[0][1]);
+                velX = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1], Ax3, Ay3 , DP[0][2], DP[1][2], 'x');
+                velY = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1], Ax3, Ay3 , DP[0][2], DP[1][2], 'y');
             } else {
                 velX = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1],DP[2][0], DP[2][1], DP[0][2], DP[1][2], 'x');
                 velY = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1],DP[2][0], DP[2][1], DP[0][2], DP[1][2], 'y');
@@ -193,28 +202,13 @@ void MotionPlanning::ComputeA(){
             
         } else if (numGoals == 2)
         {   
-            long double Ax3 = DP[0][0] + 2*(DP[1][0] - DP[0][0]);
-            long double Ay3 = DP[0][1] + 2*(DP[1][1] - DP[0][1]);
-            if (DP[0][3] == 1)
-            {
-                velX = 0;
-                velY = 0;
-                velXi = 0;
-                velYi = 0;
-            } else {
-                velX = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1], Ax3, Ay3 , DP[0][2], DP[1][2], 'x');
-                velY = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1], Ax3, Ay3 , DP[0][2], DP[1][2], 'y');
-            }
+            velX = 0;
+            velY = 0;
         }
-        
-        // velX = 0;
-        // velY = 0;
-        // velXi = 0;
-        // velYi = 0;
         
         long double Goal1Time = 0;
         long double Goal2Time = DP[1][2] - DP[0][2];
-
+        
         // define x
         a[0][0] = (DP[0][0]*(Goal2Time*Goal2Time*Goal2Time) - DP[1][0]*(Goal1Time*Goal1Time*Goal1Time) - velX*(Goal2Time*Goal2Time)*(Goal1Time*Goal1Time) + velXi*(Goal2Time*Goal2Time)*(Goal1Time*Goal1Time) + 3*DP[1][0]*Goal2Time*(Goal1Time*Goal1Time) - 3*DP[0][0]*(Goal2Time*Goal2Time)*Goal1Time + velX*Goal2Time*(Goal1Time*Goal1Time*Goal1Time) - velXi*(Goal2Time*Goal2Time*Goal2Time)*Goal1Time)/((Goal2Time - Goal1Time)*((Goal2Time*Goal2Time) - 2*Goal2Time*Goal1Time + (Goal1Time*Goal1Time)));
         a[0][1] = (velXi*(Goal2Time*Goal2Time*Goal2Time) - velX*(Goal1Time*Goal1Time*Goal1Time) - 6*DP[1][0]*Goal2Time*Goal1Time + 6*DP[0][0]*Goal2Time*Goal1Time - velX*Goal2Time*(Goal1Time*Goal1Time) + 2*velX*(Goal2Time*Goal2Time)*Goal1Time - 2*velXi*Goal2Time*(Goal1Time*Goal1Time) + velXi*(Goal2Time*Goal2Time)*Goal1Time)/((Goal2Time - Goal1Time)*((Goal2Time*Goal2Time) - 2*Goal2Time*Goal1Time + (Goal1Time*Goal1Time)));
@@ -255,3 +249,17 @@ void MotionPlanning::ComputeA(){
         }
     }
 }
+
+void MotionPlanning::EraseOldPoints(std::vector<std::vector<float>>* GoalsVector, double time){
+    if(GoalsVector->size() > 0){
+        if (time > (double)GoalsVector->at(0).at(2)){
+            GoalsVector->erase(GoalsVector->begin());
+            if(GoalsVector->size() > 0){
+                if(GoalsVector->at(0).at(3) != 1){
+                    EraseOldPoints(GoalsVector, time);
+                }
+            }
+        }
+    }
+}
+

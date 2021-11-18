@@ -38,7 +38,7 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
   int iteration = 0;
   double ptime = 0;
   
-  while(RobotController.robot->step(16) != -1){
+  while(RobotController.robot->step(4) != -1){
 
     double time = RobotController.robot->getTime();
 
@@ -50,7 +50,7 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
         {
           Motion.Plan(Goals, time);
           ptime = (double)Goals.at(0).at(2);
-          Goals.erase(Goals.begin());
+          Motion.EraseOldPoints(&Goals, time);
           iteration+=1;
         }
 
@@ -167,9 +167,9 @@ int main(int argc, char **argv)
 
     if (s == 1)
     {
-      t+=5*sqrt((XS*XS)+(YS*YS))*0.2;
+      t+=1*sqrt((XS*XS)+(YS*YS))*0.2;
     } else{
-      t+=5*sqrt((XS*XS)+(YS*YS));
+      t+=2*sqrt((XS*XS)+(YS*YS));
     }
     
     tempVector.push_back(x);
