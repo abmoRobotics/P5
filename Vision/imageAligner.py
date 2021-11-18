@@ -1,22 +1,36 @@
 import cv2
 import numpy as np
 
-from cv2 import cuda
+from cv2 import cuda, threshold
 
 
 
 
 
 def imageAlignerGPU(imgRef, imgOverlap):   
-    MAX_FEATURES = 1000
-    orb = cuda.ORB_create(MAX_FEATURES)
+    MAX_FEATURES = 115000
+    
+    img1GPU = imgRef.copy()
+    img2GPU = imgOverlap.copy()
+    cuMat1 = cv2.cuda_GpuMat()
+    cuMat2 = cv2.cuda_GpuMat()
 
-    img_ = imgOverlap.download()
-    img_1 = imgRef.download()
+    cuMat1.upload(img1GPU)
+    cuMat2.upload(img2GPU)
 
-    kp1, des1 = orb.detectAndComputeAsync(imgOverlap,None)
+    imgRef = cv2.cuda.cvtColor(cuMat1,cv2.COLOR_BGR2GRAY)
+    imgOverlap = cv2.cuda.cvtColor(cuMat2,cv2.COLOR_BGR2GRAY)
+    #img_ = imgOverlap.download()
+    #img_1 = imgRef.download()
+    #print(img_.shape)
+    
+    orb = cuda.ORB_create(MAX_FEATURES,edgeThreshold=31)
+    orb.setBlurForDescriptor(True)
+    print(orb.getBlurForDescriptor())
 
-    kp2, des2 = orb.detectAndComputeAsync(imgRef,None)
+    # find the key points and descriptors with ORB
+    kp1, des1 = orb.detectAndComputeAsync(imgRef,None)
+    kp2, des2 = orb.detectAndComputeAsync(imgOverlap,None)
 
     match = cuda.DescriptorMatcher_createBFMatcher(cv2.NORM_HAMMING)
     matches_gpu = match.knnMatchAsync(des1,des2,k=2)
@@ -27,12 +41,19 @@ def imageAlignerGPU(imgRef, imgOverlap):
     matches_cpu = match.knnMatchConvert(matches_gpu)
 
     for m,n in matches_cpu:
-        if m.distance < 0.03*n.distance:
+        if m.distance < 0.5*n.distance:
             good.append(m)
 
   
+    draw_params = dict(matchColor = (0,255,0), # draw matches in green color
+                    singlePointColor = None,
+                    flags = 2)
 
-    MIN_MATCH_COUNT = 10
+    img3 = cv2.drawMatches(img1GPU, orb.convert(kp1), img2GPU,orb.convert(kp2),good,None,**draw_params)
+   # cv2.imshow("original_image_drawMatches.jpg", img3)
+    cv2.imwrite("GPU_original_image_drawMatches.jpg",img3)
+
+    MIN_MATCH_COUNT = 5
     if len(good) > MIN_MATCH_COUNT:
         
         kp1_cpu = orb.convert(kp1)
@@ -57,16 +78,17 @@ def imageAlignerGPU(imgRef, imgOverlap):
 
         imgRef = cv2.polylines(imgRef_cpu,[np.int32(dst)],True,255,3, cv2.LINE_AA)
 
-        traveled = np.int32(dst[0][0][1])
+        traveled = abs(np.int32(dst[0][0][1]))
 
         OverlapHeight = h - traveled
 
         return traveled, OverlapHeight
     else:
         print("Insufficient matches")
-        return -1
+        return 0,0
 
 def imageAlignerCPU(img1, img2):
+    h,w = img1.shape
 
     #sift = cv2.xfeatures2d.sift_create()
     MAX_FEATURES = 5000
@@ -75,14 +97,28 @@ def imageAlignerCPU(img1, img2):
     # find the key points and descriptors with SIFT
     kp1, des1 = sift.detectAndCompute(img1,None)
     kp2, des2 = sift.detectAndCompute(img2,None)
-
+    # print("nu")
+    # print(img1.dtype)
+    # print(img2.dtype)
     match = cv2.BFMatcher()
-    matches = match.knnMatch(des1,des2,k=2)
-
+    # print(des1)
+    # print(kp1)
+    # print(des2)
+    # print(kp2)
+    
+    # print("---")
+  
+    #print(matches)
     good = []
-    for m,n in matches:
-        if m.distance < 0.5 * n.distance:
-            good.append(m)
+    try:
+        matches = match.knnMatch(des1,des2,k=2)
+
+        for m,n in matches:
+            if m.distance < 0.5 * n.distance:
+                good.append(m)
+    except:
+        print("ERROR DESCRIPTORS NOT AVAILABLE")
+        return h,0
             
     draw_params = dict(matchColor = (0,255,0), # draw matches in green color
                     singlePointColor = None,
@@ -99,7 +135,7 @@ def imageAlignerCPU(img1, img2):
 
         M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
 
-        h,w = img1.shape
+        
         pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
         dst = cv2.perspectiveTransform(pts, M)
         traveled = abs(np.int32(dst[0][0][1]))
@@ -108,23 +144,25 @@ def imageAlignerCPU(img1, img2):
         return traveled, overlapHeight
     else:
         print("Not enought matches are found - %d/%d", (len(good)/MIN_MATCH_COUNT))
-        return 0,0
-
+        return h,0
 if __name__ == "__main__":
     import time
 
 
-    im1 = cv2.imread("test_data/5.png")
-    im1 = cv2.cvtColor(im1,cv2.COLOR_BGR2GRAY)
+    im1 = cv2.imread("test_data/p1.png")
+   # im1 = cv2.cvtColor(im1,cv2.COLOR_BGR2GRAY)
     im1 = cv2.resize(im1, (480,320),interpolation=cv2.INTER_AREA)
     #print(im1.dtype)
-    im2 = cv2.imread("test_data/6.png")
-    im2 = cv2.cvtColor(im2,cv2.COLOR_BGR2GRAY)
+    im2 = cv2.imread("test_data/p2.png")
+
+    #im2 = cv2.cvtColor(im2,cv2.COLOR_BGR2GRAY)
     im2 = cv2.resize(im2, (480,320),interpolation=cv2.INTER_AREA)
-    t1 = time.time()
-    imageAlignerCPU(im1,im2)
+    print(im2.shape)
+    for i in range(10):
+        t1 = time.time()
+        
+        print(imageAlignerGPU(im1,im2))
 
-
-    # for i in range (0,100):
-    #     imageAlignerCPU(im1,im2)
-    print((time.time()-t1)/100)
+        # for i in range (0,100):
+        #     imageAlignerCPU(im1,im2)
+        print((time.time()-t1))

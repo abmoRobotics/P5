@@ -32,8 +32,8 @@ def closing(img):
     mask = np.zeros(image.shape[:2], dtype="uint8")
     for cnt in cnts:
         area = cv2.contourArea(cnt)
-        perimeter = cv2.arcLength(cnt,True)
-        circularity = 4*math.pi*(area/(perimeter*perimeter))
+        #perimeter = cv2.arcLength(cnt,True)
+        #circularity = 4*math.pi*(area/(perimeter*perimeter))
         # print("Perimeter: ", perimeter)
         # print("Circularity: ", circularity)
         # print("Area: ", area)

@@ -1,5 +1,6 @@
 import logging
-from multiprocessing import Thread, Lock, Event
+from multiprocessing import Process, Lock, Event
+from multiprocessing.managers import BaseManager
 import time
 import numpy as np
 import cv2
@@ -23,49 +24,11 @@ from path_planning.path_planning import (WIDTH, find_path)
 from path_planning.tests import visualize
 from path_planning.utils import map_cracks
 
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-# Load the trained model
-model = load_model("model/crack500BrightnessAugmentation.pth.tar")
-
-# Parameters
-HEIGHT = 320
-WIDTH = 480
-SIZE = WIDTH, HEIGHT,3
-
-#Transforms
-detect_transform = A.Compose(
-        [
-            A.Resize(height=HEIGHT, width=WIDTH),
-            A.Normalize(
-                mean=[0.0, 0.0, 0.0],
-                std=[1.0, 1.0, 1.0],
-                max_pixel_value=255.0,
-            ),
-            ToTensorV2(),
-        ],
-    )
 
 
-# Locks
-img_raw_lock = Lock()
-img_seg_lock = Lock()
-path_lock = Lock()
-
-# Events
-img_raw_event = Event()    
-img_seg_event = Event()
-transmit_event = Event()
-
-# Global variables
-img_raw = np.zeros(SIZE, dtype=np.uint8)
-img_seg = np.zeros(SIZE, dtype=np.uint8)
-path_transmit = []
-
-
-
-def thread_get_image_test():
+def thread_get_image_test(instance,lock,event):
     print("Thread 1: Starting")
-    global img_raw
+    #global img_raw
     cap = cv2.VideoCapture(1)
     # try to get first frame
     if cap.isOpened():
@@ -73,58 +36,87 @@ def thread_get_image_test():
     else: 
         rval = False
     while rval:
+        
         start_time = time.time()
         rval, frame = cap.read()
 
-        with img_raw_lock:
-            img_raw = frame
-            img_raw_event.set()
-        time.sleep(0.5)
+        lock.acquire()
+        instance.set(frame)
+        event.set()
+        lock.release()
+        print("Thread 1:", time.time()-start_time)
+        time.sleep(3)
 
-def thread_get_image():
+def thread_get_image(data_out, lock_out, event_out):
     print("Thread 1: Starting")
     global img_raw
     with Vimba.get_instance() as vimba:
         with vimba.get_camera_by_id("50-0536877557") as cam:
             while(1):
-                time1 = time.time()
+                start_time = time.time()
                 # Get frame from camera
-                time1 = time.time()
+                #time1 = time.time()
                 frame = cam.get_frame()
                 frame.convert_pixel_format(PixelFormat.Bgr8)
                 frame = frame.as_numpy_ndarray()
                 #print("FPS: %s", 1/(time.time()-time1))
                 
-                with img_raw_lock:
-                    img_raw = frame
-                    img_raw_event.set()
-                print("FPS: %s", 1/(time.time()-time1))
+                # Get lock if free
+                lock_out.acquire()
+                # Set data
+                data_out.set(frame)
+                # Set next event
+                event_out.set()
+                # Rel
+                lock_out.release()
                 
-def thread_run_model():
+                print("Thread 1:", time.time()-start_time)
+                #print("FPS: %s", 1/(time.time()-time1))
+                
+def thread_run_model(data_in, data_out, lock_in, lock_out, event_in, event_out):
+
+    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    # Load the trained model
+    model = load_model("model/crack500BrightnessAugmentation.pth.tar")
+
+    # Parameters
+    HEIGHT = 320
+    WIDTH = 480
+    SIZE = WIDTH, HEIGHT,3
+
+    #Transforms
+    detect_transform = A.Compose(
+            [
+                A.Resize(height=HEIGHT, width=WIDTH),
+                A.Normalize(
+                    mean=[0.0, 0.0, 0.0],
+                    std=[1.0, 1.0, 1.0],
+                    max_pixel_value=255.0,
+                ),
+                ToTensorV2(),
+            ],
+        )
     print("Thread 2: Starting")
-    global img_raw
     img_raw_old = np.zeros(([2, 2]), dtype=np.uint8)
     local_image = 0
-    global img_seg
+    traveled = 0
     while(1):
-        img_raw_event.wait()
-        img_raw_event.clear()
-        with img_raw_lock:
-            local_image = img_raw
-            
-            
-        
-        #print("IMGRAW", img_raw_old)
-        # Find overlap
+        event_in.wait()
+        event_in.clear()
+        start_time = time.time()
+
+        lock_in.acquire()
+        local_image = data_in.get().copy()
+        lock_in.release()
+    
 
         
         if img_raw_old.any():
-            t1 = time.time()
-            new_image = cv2.cvtColor(local_image,cv2.COLOR_BGR2GRAY)
-            new_image = cv2.resize(new_image,(WIDTH,HEIGHT),interpolation=cv2.INTER_AREA)
-            t1 = time.time()
+            
+            new_image = cv2.resize(local_image,(WIDTH,HEIGHT),interpolation=cv2.INTER_AREA)
+            new_image = cv2.cvtColor(new_image,cv2.COLOR_BGR2GRAY)
             traveled, overlapHeight = imageAlignerCPU(img_raw_old, new_image)
-            print("TRAVELED: ", traveled, " TIME: ", time.time()-t1)
+            
 
         #print(img_raw)
         augmentented = detect_transform(image=local_image)
@@ -138,39 +130,38 @@ def thread_run_model():
         #cv2.waitKey(1)
         
         img_raw_old = np.copy(local_image)
-        img_raw_old = cv2.cvtColor(img_raw_old,cv2.COLOR_BGR2GRAY)
+        
         img_raw_old = cv2.resize(img_raw_old,(480,320),interpolation=cv2.INTER_AREA)
-        # Set data if lock is free 
-        with img_seg_lock:
-            img_seg = preds.cpu().numpy()
-            img_seg_event.set()
+        img_raw_old = cv2.cvtColor(img_raw_old,cv2.COLOR_BGR2GRAY)
+        # Set data if lock is free
+         
+        lock_out.acquire()
+        data_out.set(preds.cpu().numpy())      
+        data_out.set_image_offset(traveled)
+        event_out.set()         # set event
+        lock_out.release()
+        
 
-    
+        print("Thread 2: ", time.time()-start_time)
 
-def thread_path_plan():
+def thread_path_plan(data_in, data_out, lock_in, lock_out, event_in, event_out):
     print("Thread 3: Starting")
-    global img_seg
-    global path_transmit
     img_old_seg = np.zeros(([2, 2]), dtype=np.uint8)
     old_frame = 0
     traveled = 0
 
     while True:
-        img_seg_event.wait()    # Wait for new image
-        img_seg_event.clear()   # Clear event
+        event_in.wait()    # Wait for new image
+        event_in.clear()   # Clear event
+        start_time = time.time()
         
         # Get data if lock is free
-        with img_seg_lock:
-            local_img = img_seg.astype(np.uint8)
-        t1 = time.time()
-        
-        #print(local_img.dtype)
-        #(thresh, blackAndWhiteImage) = cv2.threshold(local_img, 127, 1, cv2.THRESH_BINARY)
+        lock_in.acquire()
+        local_img = data_in.get().astype(np.uint8) # get data
+        offset = data_in.get_image_offset()
+        lock_in.release()
+        print("OFFSET: ", offset)
         sorted_cracks = process_image(local_img)
-        # if img_old_seg.any():
-        #     #print("hej")
-        #     traveled, overlapHeight = imageAlignerCPU(img_old_seg, local_img)
-        #     #print("overlap", overlapHeight)
         img_old_seg = local_img
         frame1 = Frame()    
         
@@ -183,7 +174,7 @@ def thread_path_plan():
         if not old_frame == 0:
             #print("hej")
             #print(old_frame.path)
-            map_cracks(old_frame,frame1,320*0.75)
+            map_cracks(old_frame,frame1,offset)
         path1 = find_path(frame1)
        
         old_frame = copy.copy(frame1)
@@ -193,71 +184,108 @@ def thread_path_plan():
         
         
         # Set data if lock is free
-        with path_lock:
-            path_transmit = find_path(frame1)
-            transmit_event.set()    # Set event true
+        lock_out.acquire()
+
+        data_out.set(find_path(frame1))
+        event_out.set()
+        lock_out.release()
+        print("Thread 3: ", time.time()-start_time)
         #print("FPS: ", 1/(time.time()-t1))
         frame0Vis = visualize(frame1, frame1.path,320*0.75)
         
         cv2.imshow("hej2",frame0Vis)
         cv2.waitKey(10)
-
-        # if traveled > 1:
-        #         return traveled, overlapHeight
-        # else:
-        #         return 0,0
     
-
-def thread_transmit_trajectory():
-    print("Thread 4: Starting")
+def thread_transmit_trajectory(data_in, lock_in, event_in):
+    print("Thread 4: Starting") 
     while True:
-        transmit_event.wait()    # Wait for new image
-        transmit_event.clear()   # Clear event
+        event_in.wait()     # Wait for new image
+        event_in.clear()    # Clear event
+        start_time = time.time()
 
         # Get data if lock is free
-        with path_lock:
-            local_data = path_transmit
-
+        lock_in.acquire()
+        local_data = data_in.get()
+        lock_in.release()
+        print("Thread 4: ", time.time()-start_time)
         # Do stuff here
-    
+        
 
 
-
-
+class dataTransfer:
+    def __init__(self) -> None:
+        self.data = 0
+        self.offset = 0
+    def set(self,value):
+        self.data = value
+    def get(self):
+        return self.data
+    def set_image_offset(self,value):
+        self.offset = value
+    def get_image_offset(self):
+        return self.offset
 
 if __name__ == "__main__":
-    # format = "%(asctime)s: %(message)s"
-    # logging.basicConfig(format=format, level=logging.INFO,
-    #                     datefmt="%H:%M:%S")
-    # x = Thread(target=thread_function, args=(1,5))
-    # x2 = Thread(target=thread_function2, args=(2,sum))
-    # x.start()
-    # x2.start()
+    BaseManager.register('dataTransfer', dataTransfer)
 
-    t1 = Thread(target=thread_get_image_test, daemon=False)
-    t1.start()
-    t2 = Thread(target=thread_run_model, daemon=False)
-    t2.start()
-    t3 = Thread(target=thread_path_plan, daemon=False)
-    t3.start()
+    # Locks
+    img_raw_lock = Lock()
+    img_seg_lock = Lock()
+    path_lock = Lock()
 
-    # import os
-    # import sys
-    # while(1):
-    #     try:
-    #         pass
-    #     except KeyboardInterrupt:
-    #         print("Interrupt")
-    #         try:
-    #             sys.exit(0)
-    #         except:
-    #             os._exit(0)
-    #t4 = Thread(target=thread_transmit_trajectory, daemon=False)
-    #t4.start()
-
-
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-    #     executor.map((thread_get_image, thread_path_plan, thread_transmit_trajectory), range(3))
-
+    # Events
+    img_raw_event = Event()     # Start thread 2
+    img_seg_event = Event()     # Start thread 3
+    transmit_event = Event()    # Start thread 4
+    
+    # Manager setup
+    manager_raw_img = BaseManager()
+    manager_seg_img = BaseManager()
+    manager_path = BaseManager()
+    
+    manager_raw_img.start()
+    manager_seg_img.start()
+    manager_path.start()
+    
+    inst_raw_img = manager_raw_img.dataTransfer()
+    inst_seg_img = manager_seg_img.dataTransfer()
+    inst_path = manager_path.dataTransfer()
+    
 
     
+    # Thread initialization
+    t1 = Process(target=thread_get_image, args=(
+        inst_raw_img,
+        img_raw_lock,
+        img_raw_event
+        ))
+    t2 = Process(target=thread_run_model, args=(
+        inst_raw_img, 
+        inst_seg_img,  
+        img_raw_lock, 
+        img_seg_lock, 
+        img_raw_event,
+        img_seg_event,))
+    t3 = Process(target=thread_path_plan, args=(
+        inst_seg_img, 
+        inst_path, 
+        img_seg_lock,
+        path_lock,
+        img_seg_event,
+        transmit_event
+        ))
+    t4 = Process(target=thread_transmit_trajectory, args=(
+        inst_path, 
+        path_lock, 
+        transmit_event
+        ))
+
+    processes = [t1,t2,t3,t4]
+
+    for process in processes:
+        process.start()
+    
+    for process in processes:
+        process.join()
+        
+        
