@@ -1,5 +1,5 @@
-from frame import Frame
-from crack import Crack
+from path_planning.frame import Frame
+from path_planning.crack import Crack
 
 # Funktion der transfer information fra en frame
 # INPUTS:
@@ -31,7 +31,7 @@ def map_cracks(frame1: Frame, frame2: Frame, offset: int):
                     min_val = frame_diff
                     index = idx
             mapped_cracks.append({"old_frame": i, "new_frame": index})
-
+    #print(mapped_cracks)
     # Secondly the function marks the transfered "repaired" cracks from frame 1 to frame 2 and marks them as repaired
     for cracks in mapped_cracks:
         old_crack_id = cracks['old_frame']
