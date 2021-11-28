@@ -21,7 +21,7 @@ class Encoder
 private:
 
     float Velocity = 4.444; // Velocity for robot movement, m/s
-    float DistVehicle = 2.0; //Distance in m from camera origo to robot origo
+    float DistVehicle = 1.490; //Distance in m from camera origo to robot origo
     double tStart = 0;
     int round;
     bool debug = false;
@@ -35,6 +35,12 @@ private:
     int ResY = 1216;
     float SensorXSize = 11.34;
     float SensorYSize = 7.13;
+
+    // Parameterer på målene på robotten. Specificeres som nogle "Standardmål" her, men kan (og bør) specificeres af setMeasurements() funktionen!
+    float L0 = 0.25;    //Distancen imellem motorerne
+    float L1 = 0.6;     //Længden på det første led.
+    float L2 = 0.725;   //Længden på det andet led.
+    float ActuatorLimit = 2.61799388; //150deg. Ydergrænsen som armene kan køre til. Målt fra "mid-plane".
     
 public:
 
@@ -50,5 +56,6 @@ public:
     float* ConvertPixToMeter(int X, int Y); //Returnerer meterværdier på et enkelt punkt, konverteret fra pixelværdier.
     void addGoal(Point goal);
     double timeDelta(int goal);
+    void setMeasurements(float dist, float length1, float length2);
 
 };

@@ -8,11 +8,11 @@ std::vector<Point> Encoder::getGoalsForTrajectoryPlanning(double time){
     
   int size = Goals.size();
   if (size > 2){
-    if (SealingInitiated == false && beyondThreshold(PresentPosition(Goals.at(0), time),startThreshold) == false){ // If sealing not initiated, and first point is not beyond threshold
+    if (SealingInitiated == false && beyondThreshold(PresentPosition(Goals.at(0), time),startThreshold, time) == false){ // If sealing not initiated, and first point is not beyond threshold
       Point goal = Goals.at(0);                       //Set goal to first point
       goal.goalT = timeAtY(goal,startThreshold);      //Edit time to be the time at which it will arrive
       TrajectoryGoals.push_back(Goals.at(0));         //Send goal
-    } else if (SealingInitiated == false && beyondThreshold(PresentPosition(Goals.at(0), time),0.5 == true)){ // If sealing not initiated, and first point is beyond threshold
+    } else if (SealingInitiated == false && beyondThreshold(PresentPosition(Goals.at(0), time),0.5 == true, time)){ // If sealing not initiated, and first point is beyond threshold
       SealingInitiated = true;
     } 
       
@@ -27,7 +27,7 @@ std::vector<Point> Encoder::getGoalsForTrajectoryPlanning(double time){
     
       Goals.erase(Goals.begin());
 
-      if(checkWorkspace(PresentPosition(Goals.at(2), time),0.5) == false){
+      if(checkWorkspace(PresentPosition(Goals.at(2), time),0.5, time) == false){
         SealingInitiated = false;
       }
     }
@@ -68,8 +68,19 @@ double Encoder::YAtTime(Point point, double t){
 }
 
 bool Encoder::checkWorkspace(Point point, float margin, double time){
-  // If point is within workspace, return true;
-  return 0;
+
+  float ButtomBorder = -(cos(ActuatorLimit)*L1) - L2;
+  float part1 = L1+L2;
+  float part2 = 0.5-(L0/2);
+  float topBorder = -sqrt((part1*part1) - (part2*part2));
+
+  point = PresentPosition(point, time);
+
+  if(point.x < 0.5 && point.x > -0.5 && point.y-DistVehicle > topBorder && point.y-DistVehicle < ButtomBorder){
+    return true;
+  } else {
+    return false;
+  }
 }
 
 bool Encoder::beyondThreshold(Point point, float threshold, double time){
@@ -130,3 +141,8 @@ float* Encoder::ConvertPixToMeter(int X, int Y){
   return PosXY;
 }
 
+void Encoder::setMeasurements(float dist, float length1, float length2){
+  L0 = dist;
+  L1 = length1;
+  L2 = length2;
+}

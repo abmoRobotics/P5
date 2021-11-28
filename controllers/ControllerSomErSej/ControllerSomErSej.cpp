@@ -25,12 +25,11 @@ std::mutex MutexP;
 
 Encoder Encoder;
 
-
-
 // Marie Alternation
 void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
   Controller RobotController;
   MotionPlanning Motion;
+  Encoder.setMeasurements(RobotController.L0, RobotController.L1, RobotController.L2);
 
   int iteration = 0;
   double ptime = 0;
@@ -189,6 +188,12 @@ int main(int argc, char **argv)
 
   std::thread WeBotsController (Simulation);
   std::thread CommunicationHandler (Communication);
+
+  Point point;
+  point.x = 0.49;
+  point.y = -0.5;
+
+  std::cout << "InsideWorkspace()= " << Encoder.checkWorkspace(point, 0, 0) << std::endl;
 
   WeBotsController.join();
   CommunicationHandler.join();

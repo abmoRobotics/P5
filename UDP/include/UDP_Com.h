@@ -35,8 +35,7 @@ public:
             },
             {"Time",
                 {
-                    {"Detected", 0.00},
-                    {"TimeSet", 0.00}
+                    {"Detected", 0.00}
                 }
             },
             {"Crack", 
