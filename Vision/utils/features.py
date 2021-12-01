@@ -125,6 +125,7 @@ def region_array(img):
         region = np.where((labels[:]==i+1))
 
         if len(region[0]) > MINIMUM_AREA:
+            # (x,y)
             region = list(zip(region[1], region[0]))
             region_arr.append(region)
     return region_arr
@@ -165,11 +166,7 @@ def sort_branch(regions):
         points = region
         clf = NearestNeighbors(n_neighbors=2,algorithm='auto').fit(points)
         G = clf.kneighbors_graph()
-
-
-
         T = nx.from_scipy_sparse_matrix(G)
-
         order = list(nx.dfs_preorder_nodes(T, 0))
         #print(region)
         sorted_crack = [list(region[i]) for i in order]
@@ -216,7 +213,7 @@ if __name__ == "__main__":
     t1 = time.time()
     sorted_cracks = process_image(blackAndWhiteImage)
     print(time.time()-t1)
-    print(sorted_cracks[0])
+    #print(sorted_cracks[0])
     # # Get skeleton
     # skeleton = skeletonization_with_threshold(img)
 

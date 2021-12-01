@@ -13,6 +13,7 @@ class Frame():
     def __init__(self) -> None:
         self.path = []
         self.cracks: cr = []
+        self.frame_time = 0
         pass
     
     # Add crack to path planning
@@ -68,3 +69,8 @@ class Frame():
             return True
         else: 
             return False
+    def set_frame_time(self, t):
+        self.frame_time = t
+
+    def get_frame_time(self):
+        return self.frame_time

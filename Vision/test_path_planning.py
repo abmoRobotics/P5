@@ -3,8 +3,8 @@ from PIL import Image
 import numpy as np
 from path_planning.crack import Crack
 from path_planning.frame import Frame
-
-from path_planning.path_planning import (find_path, visualize)
+from path_planning.path_planning import find_path
+from path_planning.tests import (visualize)
 import time
 import cv2
 img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L')
@@ -23,8 +23,8 @@ for crack in sorted_cracks:
 
 find_path(frame1) # 5 ms
 print(time.time()-t1)
-frame0Vis = visualize(frame1, frame1.path,640*0.75)
+frame0Vis = visualize(frame1, frame1.path,640*1)
 
 while 1:
     cv2.imshow("frame",frame0Vis)
-    cv2.waitKey(20)
+    cv2.waitKey(20) 

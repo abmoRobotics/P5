@@ -23,10 +23,10 @@ from path_planning.crack import Crack
 from path_planning.path_planning import (WIDTH, find_path)
 from path_planning.tests import visualize
 from path_planning.utils import map_cracks
+import json
+import socket
 
-
-
-def thread_get_image_test(instance,lock,event):
+def thread_get_image_test(data_out,lock,event):
     print("Thread 1: Starting")
     #global img_raw
     cap = cv2.VideoCapture(1)
@@ -38,10 +38,13 @@ def thread_get_image_test(instance,lock,event):
     while rval:
         
         start_time = time.time()
+        frameTime = time.time()
         rval, frame = cap.read()
 
+        print(frameTime)
         lock.acquire()
-        instance.set(frame)
+        data_out.set_data(frame)
+        data_out.set_frame_time(frameTime)
         event.set()
         lock.release()
         print("Thread 1:", time.time()-start_time)
@@ -56,6 +59,7 @@ def thread_get_image(data_out, lock_out, event_out):
                 start_time = time.time()
                 # Get frame from camera
                 #time1 = time.time()
+                frameTime = time.time()
                 frame = cam.get_frame()
                 frame.convert_pixel_format(PixelFormat.Bgr8)
                 frame = frame.as_numpy_ndarray()
@@ -64,7 +68,8 @@ def thread_get_image(data_out, lock_out, event_out):
                 # Get lock if free
                 lock_out.acquire()
                 # Set data
-                data_out.set(frame)
+                data_out.set_data(frame)
+                data_out.set_frame_time(frameTime)
                 # Set next event
                 event_out.set()
                 # Rel
@@ -72,12 +77,12 @@ def thread_get_image(data_out, lock_out, event_out):
                 
                 print("Thread 1:", time.time()-start_time)
                 #print("FPS: %s", 1/(time.time()-time1))
-                
+
 def thread_run_model(data_in, data_out, lock_in, lock_out, event_in, event_out):
 
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     # Load the trained model
-    model = load_model("model/crack500BrightnessAugmentation.pth.tar")
+    model = load_model("model/crack500BrightnessAugmentationv3.pth.tar")
 
     # Parameters
     HEIGHT = 320
@@ -85,7 +90,7 @@ def thread_run_model(data_in, data_out, lock_in, lock_out, event_in, event_out):
     SIZE = WIDTH, HEIGHT,3
 
     #Transforms
-    detect_transform = A.Compose(
+    detect_transform = A.Compose( 
             [
                 A.Resize(height=HEIGHT, width=WIDTH),
                 A.Normalize(
@@ -106,7 +111,8 @@ def thread_run_model(data_in, data_out, lock_in, lock_out, event_in, event_out):
         start_time = time.time()
 
         lock_in.acquire()
-        local_image = data_in.get().copy()
+        local_image = data_in.get_data().copy()
+        local_frameTime = data_in.get_frame_time()
         lock_in.release()
     
 
@@ -118,7 +124,6 @@ def thread_run_model(data_in, data_out, lock_in, lock_out, event_in, event_out):
             traveled, overlapHeight = imageAlignerCPU(img_raw_old, new_image)
             
 
-        #print(img_raw)
         augmentented = detect_transform(image=local_image)
         data = augmentented["image"].to(device=DEVICE)
         data = torch.unsqueeze(data,0)
@@ -136,7 +141,8 @@ def thread_run_model(data_in, data_out, lock_in, lock_out, event_in, event_out):
         # Set data if lock is free
          
         lock_out.acquire()
-        data_out.set(preds.cpu().numpy())      
+        data_out.set_data(preds.cpu().numpy())      
+       # data_out.set_frame_time(local_frameTime)
         data_out.set_image_offset(traveled)
         event_out.set()         # set event
         lock_out.release()
@@ -157,14 +163,14 @@ def thread_path_plan(data_in, data_out, lock_in, lock_out, event_in, event_out):
         
         # Get data if lock is free
         lock_in.acquire()
-        local_img = data_in.get().astype(np.uint8) # get data
+        local_img = data_in.get_data().astype(np.uint8) # get data
+        local_frame_time = data_in.get_frame_time()
         offset = data_in.get_image_offset()
         lock_in.release()
-        print("OFFSET: ", offset)
         sorted_cracks = process_image(local_img)
         img_old_seg = local_img
         frame1 = Frame()    
-        
+        frame1.set_frame_time(local_frame_time)
         
 
         for crack in sorted_cracks:
@@ -185,8 +191,7 @@ def thread_path_plan(data_in, data_out, lock_in, lock_out, event_in, event_out):
         
         # Set data if lock is free
         lock_out.acquire()
-
-        data_out.set(find_path(frame1))
+        data_out.set_data(find_path(frame1))
         event_out.set()
         lock_out.release()
         print("Thread 3: ", time.time()-start_time)
@@ -195,9 +200,15 @@ def thread_path_plan(data_in, data_out, lock_in, lock_out, event_in, event_out):
         
         cv2.imshow("hej2",frame0Vis)
         cv2.waitKey(10)
-    
+
 def thread_transmit_trajectory(data_in, lock_in, event_in):
     print("Thread 4: Starting") 
+    serverAddressPort = ("127.0.0.1", 20001)
+    bufferSize = 1024
+     # # Create a UDP socket on client side
+    UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+
+
     while True:
         event_in.wait()     # Wait for new image
         event_in.clear()    # Clear event
@@ -205,25 +216,59 @@ def thread_transmit_trajectory(data_in, lock_in, event_in):
 
         # Get data if lock is free
         lock_in.acquire()
-        local_data = data_in.get()
+        # import frame
+        local_data = data_in.get_data()
         lock_in.release()
-        print("Thread 4: ", time.time()-start_time)
+
+        
         # Do stuff here
         
-
+        # # Send to server using created UDP socket
+        for path in local_data.path:
+            Data = {
+                "Position": {
+                     "X": path[0],
+                     "Y": path[1]
+                    },
+                 "Time": {"Detected": local_data.get_frame_time()},
+                 "Crack": {"DetectionIndex": path[2]}
+                }
+            data = json.dumps(Data, cls=NpEncoder)
+            UDPClientSocket.sendto(data.encode(), serverAddressPort)
+        
+        print("Thread 4: ", time.time()-start_time)
+        
 
 class dataTransfer:
     def __init__(self) -> None:
         self.data = 0
         self.offset = 0
-    def set(self,value):
+        self.frameTime = 0
+    def set_data(self,value):
         self.data = value
-    def get(self):
+    def get_data(self):
         return self.data
     def set_image_offset(self,value):
         self.offset = value
     def get_image_offset(self):
         return self.offset
+    def set_frame_time(self, value):
+        self.frameTime = value
+    def get_frame_time(self):
+        return self.frameTime
+    
+
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.int64):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
 
 if __name__ == "__main__":
     BaseManager.register('dataTransfer', dataTransfer)
@@ -254,7 +299,7 @@ if __name__ == "__main__":
 
     
     # Thread initialization
-    t1 = Process(target=thread_get_image, args=(
+    t1 = Process(target=thread_get_image_test, args=(
         inst_raw_img,
         img_raw_lock,
         img_raw_event
@@ -280,7 +325,7 @@ if __name__ == "__main__":
         transmit_event
         ))
 
-    processes = [t1,t2,t3,t4]
+    processes = [t1,t2,t3,t4]#,t2,t3]
 
     for process in processes:
         process.start()
