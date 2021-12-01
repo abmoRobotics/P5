@@ -37,8 +37,8 @@ void UDP_Com::UpdateCrackDet(float crackDet){
     EncodeMessage();
 }
 
-float *UDP_Com::ExtractPosition(){
-    float *PosXY = new float[2];
+int *UDP_Com::ExtractPosition(){
+    int *PosXY = new int[2];
     PosXY[0] = Message["Position"]["X"];
     PosXY[1] = Message["Position"]["Y"];
     return PosXY;

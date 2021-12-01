@@ -1,16 +1,12 @@
 #include "include/MotionPlanning.h"
-#include <math.h>
-#include <UDP_Com.h>
-#include <iostream>
-#include <vector>
 
 
-void MotionPlanning::Plan(std::vector<std::vector<float>> GoalsVector, double PresentTime){
+void MotionPlanning::Plan(std::vector<Point> GoalsVector, double PresentTime){
 
     numGoals = GoalsVector.size();
 
     if (numGoals > 0){
-        if ((DP[0][0] != GoalsVector.at(0).at(0) || DP[0][1] != GoalsVector.at(0).at(1) || DP[0][2] != GoalsVector.at(0).at(2)) && PresentTime > DP[0][2])
+        if ((DP[0][0] != GoalsVector.at(0).x || DP[0][1] != GoalsVector.at(0).y || DP[0][2] != GoalsVector.at(0).y) && PresentTime > DP[0][2])
         {
             if (numGoals == 0) { //If Goal vector is empty, then do nothing.
                 DP[0][0] = 0; //X0
@@ -28,10 +24,10 @@ void MotionPlanning::Plan(std::vector<std::vector<float>> GoalsVector, double Pr
                 DP[2][2] = 0;
                 DP[2][3] = 0;
             } else if (numGoals == 1) { //If one goal is present, move linearly to goal.
-                DP[0][0] = GoalsVector.at(0).at(0); //X1
-                DP[0][1] = GoalsVector.at(0).at(1); //Y1
-                DP[0][2] = GoalsVector.at(0).at(2); //T1
-                DP[0][3] = GoalsVector.at(0).at(3);
+                DP[0][0] = GoalsVector.at(0).x; //X1
+                DP[0][1] = GoalsVector.at(0).y; //Y1
+                DP[0][2] = GoalsVector.at(0).goalT; //T1
+                DP[0][3] = GoalsVector.at(0).shift;
                 
                 DP[1][0] = 0; //X1
                 DP[1][1] = 0; //Y1
@@ -54,15 +50,15 @@ void MotionPlanning::Plan(std::vector<std::vector<float>> GoalsVector, double Pr
                 a[1][3] = 0;
                 
             } else if (numGoals == 2) { //If two goals are present, move through polynomial to goal, but assume some velocity.
-                DP[0][0] = GoalsVector.at(0).at(0); //X0
-                DP[0][1] = GoalsVector.at(0).at(1); //Y0
-                DP[0][2] = GoalsVector.at(0).at(2); //T0
-                DP[0][3] = GoalsVector.at(0).at(3);
+                DP[0][0] = GoalsVector.at(0).x; //X0
+                DP[0][1] = GoalsVector.at(0).y; //Y0
+                DP[0][2] = GoalsVector.at(0).goalT; //T0
+                DP[0][3] = GoalsVector.at(0).shift;
                 
-                DP[1][0] = GoalsVector.at(1).at(0); //X1
-                DP[1][1] = GoalsVector.at(1).at(1); //Y1
-                DP[1][2] = GoalsVector.at(1).at(2); //T1
-                DP[1][3] = GoalsVector.at(1).at(3);
+                DP[1][0] = GoalsVector.at(1).x; //X1
+                DP[1][1] = GoalsVector.at(1).y; //Y1
+                DP[1][2] = GoalsVector.at(1).goalT; //T1
+                DP[1][3] = GoalsVector.at(1).shift;
 
                 DP[2][0] = 0;
                 DP[2][1] = 0;
@@ -71,20 +67,20 @@ void MotionPlanning::Plan(std::vector<std::vector<float>> GoalsVector, double Pr
 
                 ComputeA();
             } else if (numGoals > 2) { //If more than two goals are present, move through polynomial to goal.
-                DP[0][0] = GoalsVector.at(0).at(0); //X0
-                DP[0][1] = GoalsVector.at(0).at(1); //Y0
-                DP[0][2] = GoalsVector.at(0).at(2); //T0
-                DP[0][3] = GoalsVector.at(0).at(3);
+                DP[0][0] = GoalsVector.at(0).x; //X0
+                DP[0][1] = GoalsVector.at(0).y; //Y0
+                DP[0][2] = GoalsVector.at(0).goalT; //T0
+                DP[0][3] = GoalsVector.at(0).shift;
                 
-                DP[1][0] = GoalsVector.at(1).at(0); //X1
-                DP[1][1] = GoalsVector.at(1).at(1); //Y1
-                DP[1][2] = GoalsVector.at(1).at(2); //T1
-                DP[1][3] = GoalsVector.at(1).at(3);
+                DP[1][0] = GoalsVector.at(1).x; //X1
+                DP[1][1] = GoalsVector.at(1).y; //Y1
+                DP[1][2] = GoalsVector.at(1).goalT; //T1
+                DP[1][3] = GoalsVector.at(1).shift;
 
-                DP[2][0] = GoalsVector.at(2).at(0);
-                DP[2][1] = GoalsVector.at(2).at(1);
-                DP[2][2] = GoalsVector.at(2).at(2);
-                DP[2][3] = GoalsVector.at(2).at(3);
+                DP[2][0] = GoalsVector.at(2).x;
+                DP[2][1] = GoalsVector.at(2).y;
+                DP[2][2] = GoalsVector.at(2).goalT;
+                DP[2][3] = GoalsVector.at(2).shift;
 
                 if(debug){
                     std::cout << "Goal0: " << DP[0][0] << ", " << DP[0][1] << ", t: " << DP[0][2] << ", EndPoint: " << DP[0][3] << std::endl;
@@ -250,16 +246,4 @@ void MotionPlanning::ComputeA(){
     }
 }
 
-void MotionPlanning::EraseOldPoints(std::vector<std::vector<float>>* GoalsVector, double time){
-    if(GoalsVector->size() > 0){
-        if (time > (double)GoalsVector->at(0).at(2)){
-            GoalsVector->erase(GoalsVector->begin());
-            if(GoalsVector->size() > 0){
-                if(GoalsVector->at(0).at(3) != 1){
-                    EraseOldPoints(GoalsVector, time);
-                }
-            }
-        }
-    }
-}
 

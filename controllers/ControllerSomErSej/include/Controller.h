@@ -1,3 +1,5 @@
+#pragma once
+
 #include <webots/Robot.hpp>
 #include <webots/Motor.hpp>
 #include <webots/PositionSensor.hpp>
@@ -5,8 +7,7 @@
 class Controller
 {
 private:
-    
-    
+
     void ForwardKinematics(float theta, float thetad);
     float square(float input);
     float deg2rad(float angle);
@@ -25,6 +26,11 @@ public:
     Controller(/* args */);
     void LinearMove(float x, float y);
     void FastMove(float x, float y, bool PosCheck);
+
+    //Dimensioner på robot
+    float L0 = 0.25;    //Distancen imellem motorerne
+    float L1 = 0.6;     //Længden på det første led.
+    float L2 = 0.725;   //Længden på det andet led.
    // ~Controller();
     
     webots::Robot *robot; //whats the need?

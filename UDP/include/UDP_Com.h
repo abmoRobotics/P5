@@ -1,3 +1,5 @@
+#pragma once
+
 #include "json.h"
 #include <stdlib.h>
 
@@ -33,8 +35,7 @@ public:
             },
             {"Time",
                 {
-                    {"Detected", 0.00},
-                    {"TimeSet", 0.00}
+                    {"Detected", 0.00}
                 }
             },
             {"Crack", 
@@ -55,7 +56,7 @@ public:
     // void UpdateVelocity(float velx, float vely);
     // void UpdateAcceleration(float accx, float accy);
     // void UpdateBitumenFlow(int BitFlow);
-    float *ExtractPosition();
+    int *ExtractPosition();
     float *ExtractTime();
     float *ExtractCrackDet();
     // float *ExtractVelocity();

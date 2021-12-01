@@ -1,3 +1,9 @@
+#pragma once
+#include <vector>
+#include "Point.h"
+#include <math.h>
+#include <UDP_Com.h>
+#include <iostream>
 #include <vector>
 
 class MotionPlanning
@@ -30,5 +36,5 @@ public:
     float* GetPosition(double t);
     float* GetVelocity(float t);
     float* GetAcceleration(float t);
-    void Plan(std::vector<std::vector<float>>, double PresentTime);
+    void Plan(std::vector<Point> GoalsVector, double PresentTime);
 };

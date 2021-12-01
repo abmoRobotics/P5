@@ -22,18 +22,14 @@
 #include <mutex>
 
 std::mutex MutexP;
-float POSY;
-float POSX;
-float TimeDetected;
-float TimeSet;
-float CrackDetection;
-std::vector<std::vector<float>> Goals;
 
+Encoder Encoder;
 
 // Marie Alternation
 void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
   Controller RobotController;
   MotionPlanning Motion;
+  Encoder.setMeasurements(RobotController.L0, RobotController.L1, RobotController.L2);
 
   int iteration = 0;
   double ptime = 0;
@@ -41,60 +37,66 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
   while(RobotController.robot->step(4) != -1){
 
     double time = RobotController.robot->getTime();
+    
+    // Encoder.updateTime(time);
 
     MutexP.lock();  
     
-    if (Goals.size() > 0)
-    {
-      if (time > (double)Goals.at(0).at(2))
-        {
-          Motion.Plan(Goals, time);
-          ptime = (double)Goals.at(0).at(2);
-          Motion.EraseOldPoints(&Goals, time);
-          iteration+=1;
-        }
+    // // Encoder.UpdateGoals(&Goals);
 
-    }
+    // if (Goals.size() > 0)
+    // {
+    //   if (time > )
+    //     {
+    //       Motion.Plan(, time);
+    //       ptime = (double)Goals.at(0).at(2);
+    //       Motion.EraseOldPoints(&Goals, time);
+    //       iteration+=1;
+    //     }
+    // 
+    // }
+    MutexP.unlock();
+
+    std::cout << (double)clock() << " " << time << std::endl;
 
     float* PositionToMove = Motion.GetPosition(time-ptime);
 
     // std::cout << "X:" << PositionToMove[0] << " Y:" << PositionToMove[1] << " Iteration:" << iteration << " Time:" << time-ptime << std::endl;
 
     RobotController.FastMove(PositionToMove[0], PositionToMove[1], false);
-    MutexP.unlock();
+    
 
-  };
+  }
 
 delete RobotController.robot;
 
 }
 
 void Communication(){ // Udlede positioner og tider fra vision
- 
-  Encoder EncodeMsg;
-    //CHILD PROCESS
+//CHILD PROCESS
+
+UDP_Com UDP;
+UDP.InitiateServer();
+//UDP.ToggleDebug(true);
+
+int rounds = 0;
+while (1){
+  UDP.ReceiveMessage();
+  // UDP.PrintMessage();
+  int *pos = UDP.ExtractPosition();
+  float *time = UDP.ExtractTime();
+  float *crackDet = UDP.ExtractCrackDet();
+
+  Point goal;
+  goal.x = pos[0];
+  goal.y = pos[1];   
+  goal.frameT = time[0];
+  goal.shift = crackDet[0];
+    MutexP.lock();
+      Encoder.addGoal(goal);
+    MutexP.unlock();
+  rounds++;
   
-  UDP_Com UDP;
-  UDP.InitiateServer();
-  //UDP.ToggleDebug(true);
-  int rounds = 0;
-  while (1){
-    UDP.ReceiveMessage();
-    UDP.PrintMessage();
-    float *pos = UDP.ExtractPosition();
-    float *time = UDP.ExtractTime();
-    float *crackDet = UDP.ExtractCrackDet();
-      MutexP.lock();
-        POSX = pos[0];
-        POSY = pos[1];   
-        TimeDetected = time[0];
-        TimeSet = time[1];
-        CrackDetection = crackDet[0];
-          //Define goals vector by encoder function
-        Goals = { EncodeMsg.Encoding(POSX, POSY, TimeDetected, TimeSet, CrackDetection) };
-      MutexP.unlock();
-    rounds++;
-    
   }
 }
 
@@ -177,15 +179,21 @@ int main(int argc, char **argv)
     tempVector.push_back(t);
     tempVector.push_back(s);
 
-    Goals.push_back(tempVector);
+    // Goals.push_back(tempVector);
 
   }
   fin.close();
 
-  std::cout << Goals.size() << " Goals loaded!" << std::endl;
+  // std::cout << Goals.size() << " Goals loaded!" << std::endl;
 
   std::thread WeBotsController (Simulation);
   std::thread CommunicationHandler (Communication);
+
+  Point point;
+  point.x = 0.49;
+  point.y = -0.5;
+
+  std::cout << "InsideWorkspace()= " << Encoder.checkWorkspace(point, 0, 0) << std::endl;
 
   WeBotsController.join();
   CommunicationHandler.join();

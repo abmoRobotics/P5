@@ -70,9 +70,9 @@ float Controller::square(float input)
 }
 void Controller::ForwardKinematics(float theta, float thetad)
 {
-  float L0 = 0.4;
-  float L1 = 1.0;
-  float L2 = 1.2;
+  // float L0 = 0.4;
+  // float L1 = 1.0;
+  // float L2 = 1.2;
   float L3 = L2;
   float L4 = L1;
   //theta += deg2rad(90);
@@ -100,10 +100,6 @@ void Controller::ForwardKinematics(float theta, float thetad)
 
 void Controller::InverseKinematics(float x, float y, bool PosCheck)
 {
-  
-  float L0 = 0.4;
-  float L1 = 1.0;
-  float L2 = 1.2;
   float L3 = L2;
   float L4 = L1;
   float LeftAngle{};
