@@ -47,7 +47,6 @@ int *UDP_Com::ExtractPosition(){
 float *UDP_Com::ExtractTime(){
     float *Time = new float[2];
     Time[0] = Message["Time"]["Detected"];
-    Time[1] = Message["Time"]["TimeSet"];
     return Time;
 }
 
@@ -57,24 +56,6 @@ float *UDP_Com::ExtractCrackDet(){
     return CrackDet;
 }
 
-// float *UDP_Com::ExtractVelocity(){
-//     float *VelXY = new float[2];
-//     VelXY[0] = Message["Velocity"]["X"];
-//     VelXY[1] = Message["Velocity"]["Y"];
-//     return VelXY;
-// }
-
-// float *UDP_Com::ExtractAcceleration(){
-//     float *AccXY = new float[2];
-//     AccXY[0] = Message["Acceleration"]["X"];
-//     AccXY[1] = Message["Acceleration"]["Y"];
-//     return AccXY;
-// }
-
-// int UDP_Com::ExtractBitumenFlow(){
-//     int BitFlow = Message["BitumenFlow"];
-//     return BitFlow;
-// }
 #pragma endregion
 
 void UDP_Com::SendMessage(){  //CLIENT, send message to server
@@ -111,10 +92,14 @@ void UDP_Com::ReceiveMessage(){  //SERVER, receive message from client
     //Convert buffer char array to string and decode
     std::string RawStringMsg = convertToString(buffer, sizeof(buffer)); 
 
+    if(debug == true){
+        std::cout << RawStringMsg << "\nMessage received from client\n" << std::endl;
+    }
+
     DecodeMessage(RawStringMsg);
 
     if(debug == true){
-        std::cout << RawStringMsg << "\nMessage received from client\n" << std::endl;
+        std::cout << "\nMessage decoded\n" << std::endl;
     }
     
 }

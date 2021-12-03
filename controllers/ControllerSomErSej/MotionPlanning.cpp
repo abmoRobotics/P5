@@ -6,7 +6,7 @@ void MotionPlanning::Plan(std::vector<Point> GoalsVector, double PresentTime){
     numGoals = GoalsVector.size();
 
     if (numGoals > 0){
-        if ((DP[0][0] != GoalsVector.at(0).x || DP[0][1] != GoalsVector.at(0).y || DP[0][2] != GoalsVector.at(0).y) && PresentTime > DP[0][2])
+        // if ((DP[0][0] != GoalsVector.at(0).x || DP[0][1] != GoalsVector.at(0).y || DP[0][2] != GoalsVector.at(0).y) && PresentTime > DP[0][2])
         {
             if (numGoals == 0) { //If Goal vector is empty, then do nothing.
                 DP[0][0] = 0; //X0
@@ -48,6 +48,10 @@ void MotionPlanning::Plan(std::vector<Point> GoalsVector, double PresentTime){
                 a[1][1] = 0;
                 a[1][2] = 0;
                 a[1][3] = 0;
+
+                if(debug){
+                    std::cout << "Goal0: " << DP[0][0] << ", " << DP[0][1] << ", t: " << DP[0][2] << ", EndPoint: " << DP[0][3] << std::endl;
+                }
                 
             } else if (numGoals == 2) { //If two goals are present, move through polynomial to goal, but assume some velocity.
                 DP[0][0] = GoalsVector.at(0).x; //X0
@@ -64,6 +68,11 @@ void MotionPlanning::Plan(std::vector<Point> GoalsVector, double PresentTime){
                 DP[2][1] = 0;
                 DP[2][2] = 0;
                 DP[2][3] = 0;
+
+                if(debug){
+                    std::cout << "Goal0: " << DP[0][0] << ", " << DP[0][1] << ", t: " << DP[0][2] << ", EndPoint: " << DP[0][3] << std::endl;
+                    std::cout << "Goal1: " << DP[1][0] << ", " << DP[1][1] << ", t: " << DP[1][2] << ", EndPoint: " << DP[1][3] << std::endl;
+                }
 
                 ComputeA();
             } else if (numGoals > 2) { //If more than two goals are present, move through polynomial to goal.

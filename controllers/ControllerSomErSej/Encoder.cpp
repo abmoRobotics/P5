@@ -1,7 +1,7 @@
 #include "include/Encoder.h"
 //std::vector<std::vector<float>> MotionVec;
 
-// Alter message from coordinates of two time stamps to coordinates with one time stamp
+// Returns the appropriate goals for trajectory planning.
 std::vector<Point> Encoder::getGoalsForTrajectoryPlanning(double time){
     
   std::vector<Point> TrajectoryGoals; //coordinates, final timestamp, and crack detected  
@@ -11,49 +11,64 @@ std::vector<Point> Encoder::getGoalsForTrajectoryPlanning(double time){
     if (SealingInitiated == false && beyondThreshold(PresentPosition(Goals.at(0), time),startThreshold, time) == false){ // If sealing not initiated, and first point is not beyond threshold
       Point goal = Goals.at(0);                       //Set goal to first point
       goal.goalT = timeAtY(goal,startThreshold);      //Edit time to be the time at which it will arrive
-      TrajectoryGoals.push_back(Goals.at(0));         //Send goal
+      goal.y = YAtTime(goal, goal.goalT);      
+      TrajectoryGoals.push_back(goal);         //Send goal
+      
     } else if (SealingInitiated == false && beyondThreshold(PresentPosition(Goals.at(0), time),0.5 == true, time)){ // If sealing not initiated, and first point is beyond threshold
       SealingInitiated = true;
     } 
       
     if (SealingInitiated == true){
-        
+
+      double timeItr = time;
       for (size_t i = 0; i < 3; i++)
       {
-        Goals.at(i).goalT = time + timeDelta(i);
-        Goals.at(i).y = YAtTime(Goals.at(i), Goals.at(i).goalT);
-        TrajectoryGoals.push_back(Goals.at(i));
+        Point goal = Goals.at(i);
+        timeItr+=timeDelta(i);
+        goal.goalT = timeItr;
+        goal.y = YAtTime(Goals.at(i), goal.goalT);
+        TrajectoryGoals.push_back(goal);
       }
-    
-      Goals.erase(Goals.begin());
-
-      if(checkWorkspace(PresentPosition(Goals.at(2), time),0.5, time) == false){
+      
+      if(checkWorkspace(PresentPosition(Goals.at(2), time),0.01, time) == false){
         SealingInitiated = false;
       }
+
+      Goals.erase(Goals.begin());
+
     }
   }
     
   if (size == 2){
 
-    for (size_t i = 0; i < 2; i++)
-    {
-      Goals.at(i).goalT = time + timeDelta(i);
-      Goals.at(i).y = YAtTime(Goals.at(i), Goals.at(i).goalT);
-      TrajectoryGoals.push_back(Goals.at(i));
-    }
-
-    Goals.erase(Goals.begin());
+    double timeItr = time;
+      for (size_t i = 0; i < 2; i++)
+      {
+        Point goal = Goals.at(i);
+        timeItr+=timeDelta(i);
+        goal.goalT = timeItr;
+        goal.y = YAtTime(Goals.at(i), goal.goalT);
+        TrajectoryGoals.push_back(goal);
+      }
+    
+      Goals.erase(Goals.begin());
 
   } else if (size == 1){
-    Goals.at(0).goalT = time + timeDelta(0);
-    Goals.at(0).y = YAtTime(Goals.at(0), Goals.at(0).goalT);
-    TrajectoryGoals.push_back(Goals.at(0));
-
-    Goals.erase(Goals.begin());
+    double timeItr = time;
+    
+      for (size_t i = 0; i < 1; i++)
+      {
+        Point goal = Goals.at(i);
+        timeItr+=timeDelta(i);
+        goal.goalT = timeItr;
+        goal.y = YAtTime(Goals.at(i), goal.goalT);
+        TrajectoryGoals.push_back(goal);
+      }
+    
+      Goals.erase(Goals.begin());
   }
 
-  return Goals;
-   
+  return TrajectoryGoals;
   
 }
 
@@ -63,34 +78,47 @@ double Encoder::timeAtY(Point point, float y){
 }
 
 double Encoder::YAtTime(Point point, double t){
-  double y = point.y-(t-point.frameT)*getVelocity();
+  double y = point.y-((t-point.frameT)*getVelocity());
   return y;
 }
 
+//Returns true if a point is within the workspace, by a margin.
 bool Encoder::checkWorkspace(Point point, float margin, double time){
 
-  float ButtomBorder = -(cos(ActuatorLimit)*L1) - L2;
+  float ButtomBorder = -(cos(ActuatorLimit)*L1) - L2 - margin;
   float part1 = L1+L2;
   float part2 = 0.5-(L0/2);
-  float topBorder = -sqrt((part1*part1) - (part2*part2));
+  float topBorder = -sqrt((part1*part1) - (part2*part2)) + margin ;
 
-  point = PresentPosition(point, time);
+  std::cout << "ButtomBorder:" << ButtomBorder-DistVehicle << " TopBorder:" << topBorder-DistVehicle << " Point:'" << point.x << "," << point.y << "'" << std::endl;
 
-  if(point.x < 0.5 && point.x > -0.5 && point.y-DistVehicle > topBorder && point.y-DistVehicle < ButtomBorder){
+  if(point.x < (1 - margin) && point.x > (0 + margin) && point.y > topBorder-DistVehicle && point.y < ButtomBorder-DistVehicle){
+    return true;
+  } else {
+    if(debug){
+      std::cout << "Goal is outside workspace" << std::endl;
+    }
+    return false;
+  }
+}
+
+//Returns true if a point is beyond the treshold
+bool Encoder::beyondThreshold(Point point, float threshold, double time){
+  // If point is beyond specified threshold, return true;
+  if (point.y < -DistVehicle - startThreshold){
+    if (debug){
+      std::cout << "Goal is beyond threshold" << std::endl;
+    }
     return true;
   } else {
     return false;
   }
 }
 
-bool Encoder::beyondThreshold(Point point, float threshold, double time){
-  // If point is beyond specified threshold, return true;
-  return 0;
-}
-
+//Returnerer aktuel pposition i camera workspace.
 Point Encoder::PresentPosition(Point point, double time){ 
   //return delta tid * hastighed - her beregner vi hvor meget framen har rykket sig ift. det tidspunkt billedet er taget.
-  Point NewY;
+  Point NewY = point;
   double timePassed = time - point.frameT;
   NewY.y = point.y - (timePassed*getVelocity());
 
@@ -100,14 +128,14 @@ Point Encoder::PresentPosition(Point point, double time){
 double Encoder::getVelocity(){
     //Do sketchy shit in webots
     //Webots_encoder = Velocity: 
-    return 2.22222; // 8 m/s
+    return 0.3; // m/s = 8km/h
 }
 
 //Returns the timedifference between goal i and i-1. If goal = 0, then timeDelta returns 0;
 double Encoder::timeDelta(int goal){
   double time = 0;
 
-  if (goal > 0){
+  if (goal > 0 && Goals.size() > 1){
     float xDif = Goals.at(goal-1).x - Goals.at(goal).x;
     float yDif = Goals.at(goal-1).y - Goals.at(goal).y; 
     double distance = sqrt((xDif*xDif) + (yDif * yDif));
@@ -118,6 +146,7 @@ double Encoder::timeDelta(int goal){
   return time;
 }
 
+//add goal to goalsvector. Takes in goal with xy in camera pixel values!
 void Encoder::addGoal(Point goal){
   Point PushGoal = goal;
   float* pos = ConvertPixToMeter(goal.x, goal.y);
@@ -133,11 +162,13 @@ float* Encoder::ConvertPixToMeter(int X, int Y){
   float fovX = 2 * atan(SensorXSize / (2*focallength));// * 57.2957; for degrees
   float fovY = 2 * atan(SensorYSize / (2*focallength));// * 57.2957; for degrees
 
-  float Ymeter = sin(fovX/2)*2*CameraMountHeight;
   float Xmeter = sin(fovY/2)*2*CameraMountHeight;
+  float Ymeter = sin(fovX/2)*2*CameraMountHeight;
 
-  PosXY[0] = (Xmeter/2) + (X*(Xmeter/ResX));
-  PosXY[1] = (Ymeter/2) + (Y*(Ymeter/ResY));
+  PosXY[0] = (X*(Xmeter/ResX));
+  PosXY[1] = (Y*(Ymeter/ResY));
+
+  // std::cout << "ConvertPixToMeter: X:" << PosXY[0] << " Y:" << PosXY[1] << std::endl;
   return PosXY;
 }
 

@@ -22,17 +22,17 @@ private:
 
     float Velocity = 4.444; // Velocity for robot movement, m/s
     float DistVehicle = 1.490; //Distance in m from camera origo to robot origo
+    float Xoffset = 0.5; //The X offset from camera origo to robot kinematic origo.
     double tStart = 0;
     int round;
-    bool debug = false;
     bool SealingInitiated = false;
     float startThreshold = 0.5;
 
     // Camera specifications
-    float CameraMountHeight = 1.6; //Meters
+    float CameraMountHeight = 1.75; //Meters
     float focallength = 12;
-    int ResX = 1936;
-    int ResY = 1216;
+    int ResX = 320;
+    int ResY = 480;
     float SensorXSize = 11.34;
     float SensorYSize = 7.13;
 
@@ -45,6 +45,7 @@ private:
 public:
 
     std::vector<Point> Goals;
+    bool debug = false;
 
     bool checkWorkspace(Point point, float margin, double time);
     bool beyondThreshold(Point point, float threshold, double time);

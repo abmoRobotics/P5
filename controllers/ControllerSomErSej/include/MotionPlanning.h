@@ -14,8 +14,6 @@ private:
     float DP[3][4];
     long double LastVel[2];
     int numGoals = 0;
-
-    bool debug = false;
     bool PolynomialPlanning = true;
 
     long double CalculateDesiredVelocity(double x1, double y1, double x2, double y2, double x3, double y3, double t1, double t2, char coor);
@@ -28,6 +26,7 @@ public:
         LastVel[1] = 0;
     }
     bool EndPoint = false;
+    bool debug = false;
 
     void EraseOldPoints(std::vector<std::vector<float>>* GoalsVector, double time);
     void InitiateTestData();
