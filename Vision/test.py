@@ -1,5 +1,5 @@
 
-from utils.dataset import CarvanaDataset
+from utils.dataset import CrackDataset
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from model.model import UNET
@@ -71,7 +71,7 @@ def get_testDS():
         ],
     )
 
-    test_ds = CarvanaDataset(
+    test_ds = CrackDataset(
         image_dir=TEST_IMG_DIR,
         mask_dir=TEST_MASK_DIR,
         transform=train_transform,
@@ -114,7 +114,7 @@ def check_accuracy(loader, model):
 def main():
     test_loader = get_testDS()
     # loop = tqdm(test_loader)
-    model = load_model("model/crack500BrightnessAugmentationv2.pth.tar")
+    model = load_model("model/crack500BrightnessAugmentationv3.pth.tar")
 
     IoU, F1 = check_accuracy(test_loader, model)
     print(F1)

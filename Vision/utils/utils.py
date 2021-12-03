@@ -1,10 +1,10 @@
 import torch
 import torchvision
-from utils.dataset import CarvanaDataset
+from utils.dataset import CrackDataset
 from torch.utils.data import DataLoader
 from model.model import UNET
 
-def save_checkpoint(state, filename="model/crack500BrightnessAugmentationv3.pth.tar"):
+def save_checkpoint(state, filename="model/crack500BrightnessAugmentationv10.pth.tar"):
     print("=> Saving checkpoint")
     torch.save(state, filename)
 
@@ -49,7 +49,7 @@ def get_loaders(
     num_workers=4,
     pin_memory=True,
 ):
-    train_ds = CarvanaDataset(
+    train_ds = CrackDataset(
         image_dir=train_dir,
         mask_dir=train_maskdir,
         transform=train_transform,
@@ -63,7 +63,7 @@ def get_loaders(
         shuffle=True,
     )
 
-    val_ds = CarvanaDataset(
+    val_ds = CrackDataset(
         image_dir=val_dir,
         mask_dir=val_maskdir,
         transform=val_transform,
@@ -99,6 +99,7 @@ def check_accuracy(loader, model, device="cuda"):
             preds = torch.sigmoid(model(x))
             preds = (preds > 0.5).float()
             num_correct += (preds == y).sum()
+            
             num_pixels += torch.numel(preds)
             intersection += ((preds * y).sum())
             union1 +=(preds + y).sum()
@@ -113,8 +114,10 @@ def check_accuracy(loader, model, device="cuda"):
     )
     print(f"Dice score: {dice_score/len(loader)}")
     print(f"IoU score: {IoU}")
+    acc = num_correct/num_pixels
+
     model.train()
-    return IoU
+    return IoU, (dice_score/len(loader)), acc
 
 def save_predictions_as_imgs(
     loader, model, folder="saved_images/", device="cuda"

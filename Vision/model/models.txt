@@ -1,0 +1,29 @@
+
+
+
+crack500BrightnessAugmentationv4.pth
+depth [32,64,128,256]
+batch = 32
+Learning rate = E-3
+Epoch = 90
+crack500BrightnessAugmentationv5.pth
+depth [32,64,128,256]
+batch = 16
+Learning rate = E-4
+Epoch = 90
+crack500BrightnessAugmentationv6.pth
+depth [64,128,256,512]
+batch = 16
+Learning rate = E-4
+Epoch = 90
+crack500BrightnessAugmentationv7.pth
+depth [64,128,256,512]
+batch = 8
+Learning rate = E-4 or E-5
+Epoch = 90
+crack500BrightnessAugmentationv10.pth
+dropout
+depth [64,128,256,512]
+batch = 16
+Learning rate = E-4 or E-5
+Epoch = 90
