@@ -177,3 +177,19 @@ void Encoder::setMeasurements(float dist, float length1, float length2){
   L1 = length1;
   L2 = length2;
 }
+
+void Encoder::visualizePoints(webots::Display *display, double time){
+
+  //Fill display with black
+  display->setColor(std::stoi("000000",0,16));
+  display->setAlpha(0.7);
+  display->fillRectangle(0,0,320,1600);
+
+  
+
+  //Draw cracks with blue
+  display->setAlpha(1);
+  display->setFont("Arial", 20, 0);
+  display->setColor(std::stoi("0000FF",0,16));
+  display->drawText("Crack Display", 10, 10);
+}

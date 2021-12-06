@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <ctime>
+#include </usr/local/webots/include/controller/cpp/webots/Display.hpp>
 
 //Til multithreading
 #include <sys/wait.h>
@@ -58,5 +59,6 @@ public:
     void addGoal(Point goal);
     double timeDelta(int goal);
     void setMeasurements(float dist, float length1, float length2);
+    void visualizePoints(webots::Display *display, double time);
 
 };

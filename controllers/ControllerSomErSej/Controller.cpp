@@ -19,7 +19,7 @@
 // All the webots classes are defined in the "webots" namespace
 using namespace webots;
 
-#define TIME_STEP 16
+#define TIME_STEP 2
 
 
 void Controller::LinearMove(float x, float y)
@@ -142,9 +142,11 @@ void Controller::InverseKinematics(float x, float y, bool PosCheck)
 
   AngleRightActuatorCompensated = (AngleRightActuator * (-1)) + (90 * M_PI / 180);
   //std::cout << "Left: " << AngleLeftActuatorCompensated << ", Right: " << AngleRightActuatorCompensated << std::endl;
-  MotorL->setPosition(AngleLeftActuatorCompensated);
   MotorR->setPosition(AngleRightActuatorCompensated);
+  MotorL->setPosition(AngleLeftActuatorCompensated);
+  
   //robot->step(TIME_STEP);
+
   if(PosCheck)
   {
     waitForrobotToreachPos(x, y);
@@ -206,7 +208,6 @@ Controller::Controller()
   // create the Robot instance.
   Controller::PosR->enable(TIME_STEP);
   Controller::PosL->enable(TIME_STEP);
-  //std::cout << "Constructor ran" << std::endl;
 }
 
 

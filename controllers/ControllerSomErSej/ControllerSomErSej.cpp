@@ -4,6 +4,8 @@
 #include </usr/local/webots/include/controller/cpp/webots/Robot.hpp>
 #include </usr/local/webots/include/controller/cpp/webots/Motor.hpp>
 #include </usr/local/webots/include/controller/cpp/webots/PositionSensor.hpp>
+#include </usr/local/webots/include/controller/cpp/webots/Display.hpp>
+// #include </usr/local/webots/include/controller/cpp/webots/Shape.hpp>
 #include <math.h>
 #include <vector>
 #include <iostream>
@@ -27,9 +29,13 @@ Encoder Encoder;
 
 // Marie Alternation
 void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
+
   Controller RobotController;
   MotionPlanning Motion;
   Encoder.setMeasurements(RobotController.L0, RobotController.L1, RobotController.L2);
+  webots::Display CrackDisplay("CrackDisplay");
+
+  Encoder.visualizePoints(&CrackDisplay);
 
   Motion.debug = false;
   Encoder.debug = false;
@@ -37,8 +43,8 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
   int iteration = 0;
   double ptime = 0;
   std::vector<Point> goals;
-  RobotController.FastMove(1, 1, false);
-  
+  RobotController.FastMove(0.1, 1, false);
+
   while(RobotController.robot->step(1) != -1){
 
     double time = RobotController.robot->getTime();
@@ -64,16 +70,17 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
         goals = Encoder.getGoalsForTrajectoryPlanning(time);
       MutexP.unlock();
     }
-
     
     float* PositionToMove = Motion.GetPosition(time-ptime);
 
     float movex = -PositionToMove[0] + 0.375;
     float movey = -PositionToMove[1] - 1.490;
 
-    //std::cout << "X:" << PositionToMove[0] << " Y:" << PositionToMove[1] << " Iteration:" << iteration << " Time:" << time-ptime << " goals size:" << goals.size() << std::endl;
+    std::cout << "X:" << PositionToMove[0] << " Y:" << PositionToMove[1] << " Iteration:" << iteration << " Time:" << time-ptime << " goals size:" << goals.size() << std::endl;
  
     RobotController.FastMove(movex, movey, false);
+    RobotController.robot->getMotor("MotorL")->enableTorqueFeedback(1);
+    std::cout << "Left motor Torque: " << RobotController.robot->getMotor("MotorL")->getTorqueFeedback() << std::endl;
     
 
   }

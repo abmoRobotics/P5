@@ -29,8 +29,8 @@ public:
 
     //Dimensioner på robot
     float L0 = 0.25;    //Distancen imellem motorerne
-    float L1 = 0.6;     //Længden på det første led.
-    float L2 = 0.725;   //Længden på det andet led.
+    float L1 = 0.620;     //Længden på det første led.
+    float L2 = 0.745;   //Længden på det andet led.
    // ~Controller();
     
     webots::Robot *robot; //whats the need?
