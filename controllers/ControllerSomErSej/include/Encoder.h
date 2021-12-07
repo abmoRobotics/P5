@@ -22,7 +22,7 @@ class Encoder
 private:
 
     float Velocity = 4.444; // Velocity for robot movement, m/s
-    float DistVehicle = 1.490; //Distance in m from camera origo to robot origo
+    float DistVehicle = 0.6857; //Distance in m from camera origo to robot origo
     float Xoffset = 0.5; //The X offset from camera origo to robot kinematic origo.
     double tStart = 0;
     int round;
@@ -46,6 +46,8 @@ private:
 public:
 
     std::vector<Point> Goals;
+    std::vector<Point> GoalsHistory;
+    
     bool debug = false;
 
     bool checkWorkspace(Point point, float margin, double time);
@@ -59,6 +61,7 @@ public:
     void addGoal(Point goal);
     double timeDelta(int goal);
     void setMeasurements(float dist, float length1, float length2);
-    void visualizePoints(webots::Display *display, double time);
+    void visualizePoints(webots::Display *display, double time, float* robotPos);
+    int* getDisplayCoordinates(Point point, double time);
 
 };

@@ -35,22 +35,28 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
   Encoder.setMeasurements(RobotController.L0, RobotController.L1, RobotController.L2);
   webots::Display CrackDisplay("CrackDisplay");
 
-  Encoder.visualizePoints(&CrackDisplay);
-
   Motion.debug = false;
-  Encoder.debug = false;
+  Encoder.debug = true;
 
   int iteration = 0;
   double ptime = 0;
   std::vector<Point> goals;
   RobotController.FastMove(0.1, 1, false);
 
+  //Initial position
+  // Point firstGoal;
+  // firstGoal.x = 0.5;
+  // firstGoal.y = -2.020;
+  // firstGoal.shift = 0;
+  // firstGoal.frameT = 0;
+  // Encoder.Goals.insert(Encoder.Goals.begin(), firstGoal);
+
   while(RobotController.robot->step(1) != -1){
 
     double time = RobotController.robot->getTime();
 
     if(goals.size() > 1){
-      if( goals.at(1).goalT < time){
+      if( (goals.at(1).goalT < time)){
         MutexP.lock();  
           goals = Encoder.getGoalsForTrajectoryPlanning(time);
         MutexP.unlock();
@@ -73,15 +79,24 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
     
     float* PositionToMove = Motion.GetPosition(time-ptime);
 
-    float movex = -PositionToMove[0] + 0.375;
-    float movey = -PositionToMove[1] - 1.490;
-
-    std::cout << "X:" << PositionToMove[0] << " Y:" << PositionToMove[1] << " Iteration:" << iteration << " Time:" << time-ptime << " goals size:" << goals.size() << std::endl;
+    float movex = PositionToMove[0] - 0.375;
+    float movey = -PositionToMove[1] - 0.6857;
+    
+    // std::cout << "X:" << PositionToMove[0] << " Y:" << PositionToMove[1] << " Iteration:" << iteration << " Time:" << time-ptime << " goals size:" << goals.size() << std::endl;
  
     RobotController.FastMove(movex, movey, false);
+
     RobotController.robot->getMotor("MotorL")->enableTorqueFeedback(1);
-    std::cout << "Left motor Torque: " << RobotController.robot->getMotor("MotorL")->getTorqueFeedback() << std::endl;
+    RobotController.robot->getMotor("MotorR")->enableTorqueFeedback(1);
+    //std::cout << "Left motor Torque: " << RobotController.robot->getMotor("MotorL")->getTorqueFeedback() << std::endl;
     
+    float* coord = RobotController.ReturnCoord();
+    coord[0] = coord[0]+0.375;
+    coord[1] = - coord[1] - 0.6857; 
+
+    // std::cout << "x:"<< coord[0] << " y:" << coord[1] << std::endl;
+
+    Encoder.visualizePoints(&CrackDisplay, time, coord);
 
   }
 
@@ -91,12 +106,11 @@ delete RobotController.robot;
 
 void Communication(){ // Udlede positioner og tider fra vision
 //CHILD PROCESS
+  UDP_Com UDP;
 
-UDP_Com UDP;
-
- // File pointer
+  // File pointer
   std::fstream fin;
-  std::string filename = "/home/emil/Documents/TestPoints3.txt";
+  std::string filename = "/home/emil/Documents/json_advanced.txt";
   // Open an existing file
   std::cout << "Loading file: " << filename << std::endl;
   fin.open(filename, std::ios::in);
@@ -109,7 +123,6 @@ UDP_Com UDP;
   std::vector<std::string> tempdata;
   std::string line;
   std::stringstream s;
-  double t = 0;
   while (std::getline(fin, line)) {
     
     if(line.size() > 2){
@@ -131,27 +144,38 @@ UDP_Com UDP;
   }
   fin.close();
 
-UDP.InitiateServer();
-//UDP.ToggleDebug(true);
+  MutexP.lock();
+    Encoder.GoalsHistory = Encoder.Goals;
+    for (auto &&i : Encoder.GoalsHistory)
+    {
+      i.goalT = 1;
+    }
+    
+  MutexP.unlock();
 
-int rounds = 0;
-while (1){
-  UDP.ReceiveMessage();
-  // UDP.PrintMessage();
-  int *pos = UDP.ExtractPosition();
-  float *time = UDP.ExtractTime();
-  float *crackDet = UDP.ExtractCrackDet();
-  Point goal;
-  goal.x = pos[0];
-  goal.y = pos[1];   
-  goal.frameT = time[0];
-  goal.shift = crackDet[0];
-    MutexP.lock();
-      Encoder.addGoal(goal);
-    MutexP.unlock();
-  rounds++;
-  
+
+
+  UDP.InitiateServer();
+  //UDP.ToggleDebug(true);
+
+  int rounds = 0;
+  while (1){
+    UDP.ReceiveMessage();
+    // UDP.PrintMessage();
+    int *pos = UDP.ExtractPosition();
+    float *time = UDP.ExtractTime();
+    float *crackDet = UDP.ExtractCrackDet();
+    Point goal;
+    goal.x = pos[0];
+    goal.y = pos[1];   
+    goal.frameT = time[0];
+    goal.shift = crackDet[0];
+      MutexP.lock();
+        Encoder.addGoal(goal);
+      MutexP.unlock();
+    rounds++;
   }
+
 }
 
 

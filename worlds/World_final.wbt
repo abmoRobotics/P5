@@ -4,8 +4,8 @@ WorldInfo {
   coordinateSystem "NUE"
 }
 Viewpoint {
-  orientation -0.06983282194079204 -0.9333473513081917 -0.3521165982821153 2.556015017613419
-  position -3.194224060847305 5.293070348440235 -2.7689417838807113
+  orientation 0.10115437726263345 -0.9633386975200899 -0.24848812008002621 3.8695037247715427
+  position 2.5467728608738462 1.9097156055641524 -0.9987422902676757
 }
 DirectionalLight {
   ambientIntensity 1
@@ -57,16 +57,17 @@ Robot {
           device [
             DEF MotorL RotationalMotor {
               name "MotorL"
-              controlPID 50 0 0
-              maxVelocity 3
-              maxTorque 250
+              controlPID 100 0 0
+              maxVelocity 100
+              maxTorque 1000000
             }
             DEF PosL PositionSensor {
               name "PosL"
             }
           ]
           endPoint DEF ActLeft Solid {
-            translation -2.220446049250313e-16 0 -7.460698725481052e-14
+            translation -9.00393847114156e-06 -5.716233623484772e-06 -2.88744722309886e-06
+            rotation -0.6866323626517243 -2.641047920749015e-06 -0.7270048132937884 3.9144417349951e-06
             children [
               DEF LeftJoint HingeJoint {
                 jointParameters HingeJointParameters {
@@ -75,7 +76,7 @@ Robot {
                   anchor 0.519079 0 0.685199
                 }
                 endPoint DEF EndLeft Solid {
-                  translation -1.8318679906315083e-14 0 -1.8318679906315083e-14
+                  translation -3.5416114485542494e-14 0 -3.5638159090467525e-14
                   children [
                     DEF EndLeft Shape {
                       appearance Appearance {
@@ -109,6 +110,7 @@ Robot {
                   name "EndLeft"
                   boundingObject USE EndLeft
                   physics Physics {
+                    mass 10
                   }
                 }
               }
@@ -144,6 +146,7 @@ Robot {
             name "ActLeft"
             boundingObject USE ActLeft
             physics Physics {
+              mass 10
             }
           }
         }
@@ -156,16 +159,17 @@ Robot {
           device [
             DEF MotorR RotationalMotor {
               name "MotorR"
-              controlPID 50 0 0
-              maxVelocity 3
-              maxTorque 250
+              controlPID 100 0 0
+              maxVelocity 100
+              maxTorque 1000000
             }
             DEF PosR PositionSensor {
               name "PosR"
             }
           ]
           endPoint DEF ActRight Solid {
-            translation 5.573319583618286e-14 0 7.394085344003543e-14
+            translation 1.0203075099468606e-05 -7.694695816304868e-06 1.2959481627827785e-06
+            rotation -0.312297687111658 -2.0637037038686893e-06 0.9499842917756324 2.4497799047903256e-06
             children [
               DEF RightJoint HingeJoint {
                 jointParameters HingeJointParameters {
@@ -174,7 +178,7 @@ Robot {
                   anchor 0.769079 0 0.685199
                 }
                 endPoint DEF EndRight Solid {
-                  translation -3.7414515929867775e-14 0 -3.730349362740526e-14
+                  translation -7.149836278586008e-14 0 -7.127631818093505e-14
                   children [
                     DEF EndEffJoint HingeJoint {
                       jointParameters HingeJointParameters {
@@ -217,6 +221,7 @@ Robot {
                   name "EndRight"
                   boundingObject USE EndRight
                   physics Physics {
+                    mass 10
                   }
                 }
               }
@@ -252,6 +257,7 @@ Robot {
             name "ActRight"
             boundingObject USE ActRight
             physics Physics {
+              mass 10
             }
           }
         }

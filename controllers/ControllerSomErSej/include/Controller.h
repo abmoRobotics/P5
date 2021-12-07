@@ -26,6 +26,7 @@ public:
     Controller(/* args */);
     void LinearMove(float x, float y);
     void FastMove(float x, float y, bool PosCheck);
+    float* ReturnCoord();
 
     //Dimensioner på robot
     float L0 = 0.25;    //Distancen imellem motorerne
@@ -35,18 +36,3 @@ public:
     
     webots::Robot *robot; //whats the need?
 };
-
-// Controller::Controller(/* args */)
-// {
-//     Robot *robot = new Robot();
-
-//     Motor *motorR = robot->getMotor("MotorR");
-//     Motor *motorL = robot->getMotor("MotorL");
-
-//     PositionSensor *posR = robot->getPositionSensor("PosR");
-//     PositionSensor *posL = robot->getPositionSensor("PosL");
-// }
-
-// Controller::~Controller()
-// {
-// }

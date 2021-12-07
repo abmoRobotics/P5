@@ -196,6 +196,18 @@ void Controller::line(float x0, float y0)
   Controller::InverseKinematics(x3, y3, false);
 }
 
+//Returns coordinates of robot.
+float* Controller::ReturnCoord(){
+  float* coord = new float[2];
+
+  Controller::ForwardKinematics(Controller::getLpos(), Controller::getRpos());
+  
+  coord[0] = xCoord;
+  coord[1] = yCoord;
+
+  return coord;
+}
+
 Controller::Controller()
 {
   Controller::robot = new Robot();
@@ -209,5 +221,6 @@ Controller::Controller()
   Controller::PosR->enable(TIME_STEP);
   Controller::PosL->enable(TIME_STEP);
 }
+
 
 

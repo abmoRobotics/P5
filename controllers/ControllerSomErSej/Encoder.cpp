@@ -8,18 +8,12 @@ std::vector<Point> Encoder::getGoalsForTrajectoryPlanning(double time){
     
   int size = Goals.size();
   if (size > 2){
-    if (SealingInitiated == false && beyondThreshold(PresentPosition(Goals.at(0), time),startThreshold, time) == false){ // If sealing not initiated, and first point is not beyond threshold
-      Point goal = Goals.at(0);                       //Set goal to first point
-      goal.goalT = timeAtY(goal,startThreshold);      //Edit time to be the time at which it will arrive
-      goal.y = YAtTime(goal, goal.goalT);      
-      TrajectoryGoals.push_back(goal);         //Send goal
+    //If point 0 and 1 are within workspace:
+    if(checkWorkspace(PresentPosition(Goals.at(0),time),0.01,time) == true && checkWorkspace(PresentPosition(Goals.at(1),time),0.01,time) == true){
+      if(debug){
+        std::cout << "goal.at(0) and goal.at(1) are within workspace" << std::endl;
+      }
       
-    } else if (SealingInitiated == false && beyondThreshold(PresentPosition(Goals.at(0), time),0.5 == true, time)){ // If sealing not initiated, and first point is beyond threshold
-      SealingInitiated = true;
-    } 
-      
-    if (SealingInitiated == true){
-
       double timeItr = time;
       for (size_t i = 0; i < 3; i++)
       {
@@ -29,13 +23,49 @@ std::vector<Point> Encoder::getGoalsForTrajectoryPlanning(double time){
         goal.y = YAtTime(Goals.at(i), goal.goalT);
         TrajectoryGoals.push_back(goal);
       }
-      
-      if(checkWorkspace(PresentPosition(Goals.at(2), time),0.01, time) == false){
-        SealingInitiated = false;
+      Goals.erase(Goals.begin());
+    }
+
+    //If point 0 are within workspace, and point 1 is outside.
+    else if(checkWorkspace(PresentPosition(Goals.at(0),time),0.01,time) == true && checkWorkspace(PresentPosition(Goals.at(1),time),0.01,time) == false){
+
+      if(debug){
+        std::cout << "goal.at(0) is within workspace and goal.at(1) is outside workspace" << std::endl;
       }
 
-      Goals.erase(Goals.begin());
+      Point goal0 = Goals.at(0);
+      Point goal1 = Goals.at(1);
+      Point goal2 = Goals.at(2);
 
+      goal0.goalT = time;
+      goal1.goalT = timeAtY(goal1, -(-(cos(ActuatorLimit)*L1) - L2)) + 0.02;
+      goal2.goalT = timeAtY(goal2, -(-(cos(ActuatorLimit)*L1) - L2)) + 0.02;
+
+      goal0.y = YAtTime(Goals.at(0), goal0.goalT);
+      goal1.y = YAtTime(Goals.at(1), goal1.goalT);
+      goal2.y = YAtTime(Goals.at(2), goal2.goalT);
+
+      std::cout << "goal0.y:" << goal0.y << "goal1.y:" << goal1.y << "goal2.y:" << goal2.y << std::endl;
+
+      TrajectoryGoals.push_back(goal0);
+      TrajectoryGoals.push_back(goal1);
+      TrajectoryGoals.push_back(goal2);
+
+      Goals.erase(Goals.begin());
+      
+    }
+
+    //If point 0 and 1 are outside workspace.
+    else if(checkWorkspace(PresentPosition(Goals.at(0),time),0.01,time) == false && checkWorkspace(PresentPosition(Goals.at(1),time),0.01,time) == false){
+      if(debug){
+        std::cout << "goal.at(0) and goal.at(1) are outside workspace" << std::endl;
+      }
+      
+      Point goal0 = Goals.at(0);
+      goal0.goalT = timeAtY(goal0, -(-(cos(ActuatorLimit)*L1) - L2)) + 0.01;
+      goal0.y = YAtTime(Goals.at(0), goal0.goalT);
+      goal0.shift = 1;
+      TrajectoryGoals.push_back(goal0);     
     }
   }
     
@@ -73,7 +103,8 @@ std::vector<Point> Encoder::getGoalsForTrajectoryPlanning(double time){
 }
 
 double Encoder::timeAtY(Point point, float y){
-  double tAty = point.frameT+(point.y + y + DistVehicle)/getVelocity(); // The time at which the point was found + The time it takes to get to y.
+  double distance = point.y + y + DistVehicle;
+  double tAty = point.frameT+(distance/getVelocity()); // The time at which the point was found + The time it takes to get to y.
   return tAty;
 }
 
@@ -90,9 +121,10 @@ bool Encoder::checkWorkspace(Point point, float margin, double time){
   float part2 = 0.5-(L0/2);
   float topBorder = -sqrt((part1*part1) - (part2*part2)) + margin ;
 
-  std::cout << "ButtomBorder:" << ButtomBorder-DistVehicle << " TopBorder:" << topBorder-DistVehicle << " Point:'" << point.x << "," << point.y << "'" << std::endl;
+  // std::cout << "ButtomBorder:" << ButtomBorder-DistVehicle << " TopBorder:" << topBorder-DistVehicle << " Point:'" << point.x << "," << point.y << "'" << std::endl;
 
   if(point.x < (1 - margin) && point.x > (0 + margin) && point.y > topBorder-DistVehicle && point.y < ButtomBorder-DistVehicle){
+  // if(point.x < (1 - margin) && point.x > (0 + margin) && point.y > topBorder-DistVehicle && point.y < ButtomBorder){
     return true;
   } else {
     if(debug){
@@ -105,7 +137,7 @@ bool Encoder::checkWorkspace(Point point, float margin, double time){
 //Returns true if a point is beyond the treshold
 bool Encoder::beyondThreshold(Point point, float threshold, double time){
   // If point is beyond specified threshold, return true;
-  if (point.y < -DistVehicle - startThreshold){
+  if (point.y < (-DistVehicle - startThreshold)){
     if (debug){
       std::cout << "Goal is beyond threshold" << std::endl;
     }
@@ -115,7 +147,7 @@ bool Encoder::beyondThreshold(Point point, float threshold, double time){
   }
 }
 
-//Returnerer aktuel pposition i camera workspace.
+//Returnerer aktuel position i camera workspace.
 Point Encoder::PresentPosition(Point point, double time){ 
   //return delta tid * hastighed - her beregner vi hvor meget framen har rykket sig ift. det tidspunkt billedet er taget.
   Point NewY = point;
@@ -128,7 +160,7 @@ Point Encoder::PresentPosition(Point point, double time){
 double Encoder::getVelocity(){
     //Do sketchy shit in webots
     //Webots_encoder = Velocity: 
-    return 0.3; // m/s = 8km/h
+    return 2*0.277777; // 1km/h = 0.277777 m/s
 }
 
 //Returns the timedifference between goal i and i-1. If goal = 0, then timeDelta returns 0;
@@ -178,18 +210,59 @@ void Encoder::setMeasurements(float dist, float length1, float length2){
   L2 = length2;
 }
 
-void Encoder::visualizePoints(webots::Display *display, double time){
+//Visualiserer alle datapunkter i goals vektoren.
+void Encoder::visualizePoints(webots::Display *display, double time, float* robotPos){
 
   //Fill display with black
   display->setColor(std::stoi("000000",0,16));
-  display->setAlpha(0.7);
+  display->setAlpha(0.5);
   display->fillRectangle(0,0,320,1600);
 
-  
-
-  //Draw cracks with blue
+  //Create text
   display->setAlpha(1);
   display->setFont("Arial", 20, 0);
   display->setColor(std::stoi("0000FF",0,16));
   display->drawText("Crack Display", 10, 10);
+
+  //Draw cracks with blue
+  display->setAlpha(1);
+  display->setColor(std::stoi("0000FF",0,16));
+  
+  for (auto &&GoalPoint : GoalsHistory)
+  {
+    float ydiff = YAtTime(GoalPoint, time) - robotPos[1];
+    float xdiff = GoalPoint.x - robotPos[0];
+    float dist = sqrt((ydiff*ydiff)+(xdiff*xdiff));
+    
+    if(GoalPoint.goalT > dist){
+      GoalPoint.goalT = dist;
+    }
+    
+    if(GoalPoint.goalT < 0.015){
+      display->setColor(std::stoi("FF0000",0,16));
+    } else {
+      display->setColor(std::stoi("0000FF",0,16));
+    }
+    
+    int* coordinates = getDisplayCoordinates(GoalPoint, time);
+    display->fillOval(coordinates[0], coordinates[1], 2, 2);
+    
+  }
+  
+
+}
+
+//Returnerer en int vector med display-koordinaterne til et punkt.
+int* Encoder::getDisplayCoordinates(Point point, double time){
+  int *Coord = new int[2];
+  
+  //X-coordinate
+  Coord[0] = (int)(point.x * 320);
+  
+  //Y-coordinate
+  //y=800 equals y=0 in camera frame
+  Coord[1] = 800 + (int)(320*YAtTime(point, time));
+
+  return Coord;
+
 }

@@ -205,8 +205,12 @@ void MotionPlanning::ComputeA(){
                 velY = CalculateDesiredVelocity(DP[0][0], DP[0][1], DP[1][0],DP[1][1],DP[2][0], DP[2][1], DP[0][2], DP[1][2], 'y');
             }
             
-        } else if (numGoals == 2)
-        {   
+        } else if (numGoals == 2 && DP[0][3] == 1 && DP[1][3] == 1){
+            velX = 0;
+            velY = 0;
+            velXi = 0;
+            velYi = 0;
+        } else if (numGoals == 2){   
             velX = 0;
             velY = 0;
         }
