@@ -38,14 +38,12 @@ std::vector<Point> Encoder::getGoalsForTrajectoryPlanning(double time){
       Point goal2 = Goals.at(2);
 
       goal0.goalT = time;
-      goal1.goalT = timeAtY(goal1, -(-(cos(ActuatorLimit)*L1) - L2)) + 0.02;
-      goal2.goalT = timeAtY(goal2, -(-(cos(ActuatorLimit)*L1) - L2)) + 0.02;
+      goal1.goalT = timeAtY(goal1, -(-(cos(ActuatorLimit)*L1) - L2)) + CorrectionFactor;
+      goal2.goalT = timeAtY(goal2, -(-(cos(ActuatorLimit)*L1) - L2)) + CorrectionFactor;
 
       goal0.y = YAtTime(Goals.at(0), goal0.goalT);
       goal1.y = YAtTime(Goals.at(1), goal1.goalT);
       goal2.y = YAtTime(Goals.at(2), goal2.goalT);
-
-      std::cout << "goal0.y:" << goal0.y << "goal1.y:" << goal1.y << "goal2.y:" << goal2.y << std::endl;
 
       TrajectoryGoals.push_back(goal0);
       TrajectoryGoals.push_back(goal1);
@@ -121,7 +119,7 @@ bool Encoder::checkWorkspace(Point point, float margin, double time){
   float part2 = 0.5-(L0/2);
   float topBorder = -sqrt((part1*part1) - (part2*part2)) + margin ;
 
-  // std::cout << "ButtomBorder:" << ButtomBorder-DistVehicle << " TopBorder:" << topBorder-DistVehicle << " Point:'" << point.x << "," << point.y << "'" << std::endl;
+  // std::cout << "ButtomBorder:" << ButtomBorder-DistVehicle << " TopBorder:" << topBorder-DistVehicle << std::endl;
 
   if(point.x < (1 - margin) && point.x > (0 + margin) && point.y > topBorder-DistVehicle && point.y < ButtomBorder-DistVehicle){
   // if(point.x < (1 - margin) && point.x > (0 + margin) && point.y > topBorder-DistVehicle && point.y < ButtomBorder){
@@ -160,7 +158,7 @@ Point Encoder::PresentPosition(Point point, double time){
 double Encoder::getVelocity(){
     //Do sketchy shit in webots
     //Webots_encoder = Velocity: 
-    return 2*0.277777; // 1km/h = 0.277777 m/s
+    return VehicleVelocity*0.277777; // 1km/h = 0.277777 m/s
 }
 
 //Returns the timedifference between goal i and i-1. If goal = 0, then timeDelta returns 0;
@@ -230,15 +228,15 @@ void Encoder::visualizePoints(webots::Display *display, double time, float* robo
   
   for (auto &&GoalPoint : GoalsHistory)
   {
-    float ydiff = YAtTime(GoalPoint, time) - robotPos[1];
-    float xdiff = GoalPoint.x - robotPos[0];
+    float ydiff = abs(YAtTime(GoalPoint, time) - robotPos[1]);
+    float xdiff = abs(GoalPoint.x - robotPos[0]);
     float dist = sqrt((ydiff*ydiff)+(xdiff*xdiff));
     
     if(GoalPoint.goalT > dist){
       GoalPoint.goalT = dist;
     }
     
-    if(GoalPoint.goalT < 0.015){
+    if(GoalPoint.goalT < 0.025){
       display->setColor(std::stoi("FF0000",0,16));
     } else {
       display->setColor(std::stoi("0000FF",0,16));

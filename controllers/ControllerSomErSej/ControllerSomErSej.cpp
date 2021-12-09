@@ -36,20 +36,18 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
   webots::Display CrackDisplay("CrackDisplay");
 
   Motion.debug = false;
-  Encoder.debug = true;
+  Encoder.debug = false;
+
+  std::ofstream fout;
+  fout.open("ForceLog.txt");
+  fout.clear();
 
   int iteration = 0;
   double ptime = 0;
   std::vector<Point> goals;
   RobotController.FastMove(0.1, 1, false);
 
-  //Initial position
-  // Point firstGoal;
-  // firstGoal.x = 0.5;
-  // firstGoal.y = -2.020;
-  // firstGoal.shift = 0;
-  // firstGoal.frameT = 0;
-  // Encoder.Goals.insert(Encoder.Goals.begin(), firstGoal);
+  std::vector<float> avgY;
 
   while(RobotController.robot->step(1) != -1){
 
@@ -88,17 +86,62 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
 
     RobotController.robot->getMotor("MotorL")->enableTorqueFeedback(1);
     RobotController.robot->getMotor("MotorR")->enableTorqueFeedback(1);
-    //std::cout << "Left motor Torque: " << RobotController.robot->getMotor("MotorL")->getTorqueFeedback() << std::endl;
-    
+    fout << "LeftTorque:" << RobotController.robot->getMotor("MotorL")->getTorqueFeedback() << " ,RightTorque:" << RobotController.robot->getMotor("MotorR")->getTorqueFeedback() << "\n";
+    // std::cout << "LeftTorque:" << RobotController.robot->getMotor("MotorL")->getTorqueFeedback() << " ,RightTorque:" << RobotController.robot->getMotor("MotorR")->getTorqueFeedback() << "\n";
+
+
     float* coord = RobotController.ReturnCoord();
-    coord[0] = coord[0]+0.375;
+    coord[0] = coord[0] + 0.375;
     coord[1] = - coord[1] - 0.6857; 
+
+    avgY.push_back(coord[1]);
 
     // std::cout << "x:"<< coord[0] << " y:" << coord[1] << std::endl;
 
     Encoder.visualizePoints(&CrackDisplay, time, coord);
 
+    if(Encoder.Goals.size() == 0){
+      int counter[4] = {0,0,0,0};
+      float accuracy[4] = {0.05, 0.025, 0.015, 0.005};
+      for (auto &&element : Encoder.GoalsHistory)
+      {
+        for (size_t i = 0; i < 4; i++)
+        {
+         if(element.goalT > accuracy[i]){
+          counter[i]++; 
+          }
+        }
+      }
+
+      for (size_t i = 0; i < 4; i++)
+      {
+        double HitPecentage = (double)counter[i] / (double)Encoder.GoalsHistory.size();
+        std::cout << "Percentage hit within " << accuracy[i] << " meters: " << (1-HitPecentage)*100 << "%" << std::endl;
+      }
+
+      double averageY = 0;
+      double accumulatedY = 0.0;
+      int AverageYSize = 0;
+
+      for (size_t i = 0; i < avgY.size(); i++)
+      {
+        if(isnan(avgY.at(i)) == 0){
+          accumulatedY = accumulatedY + (double)avgY.at(i);
+          AverageYSize++;
+        }         
+      }
+      averageY = accumulatedY/(double)AverageYSize;
+      double loadindex = -92.215 * averageY -83.431;
+      std::cout << "LoadIndex: " << loadindex << "%" << std::endl;
+
+      delete RobotController.robot;
+
+    }
+
+    
   }
+
+fout.close();
 
 delete RobotController.robot;
 

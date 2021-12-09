@@ -4,8 +4,8 @@ WorldInfo {
   coordinateSystem "NUE"
 }
 Viewpoint {
-  orientation 0.10115437726263345 -0.9633386975200899 -0.24848812008002621 3.8695037247715427
-  position 2.5467728608738462 1.9097156055641524 -0.9987422902676757
+  orientation 0.08748202070665118 -0.9681969246742087 -0.2343962693911439 3.8143820082899818
+  position 2.367321510394757 1.4011435752234083 -0.820179394255413
 }
 DirectionalLight {
   ambientIntensity 1
@@ -14,9 +14,16 @@ DirectionalLight {
 }
 RectangleArena {
   floorSize 100 100
+  floorAppearance Appearance {
+    texture ImageTexture {
+      url [
+        "asphalt.jpg"
+      ]
+    }
+  }
 }
 Robot {
-  translation 0 0 0.01
+  translation 0 -0.23 0.01
   children [
     DEF CrackDisplay Display {
       translation 0.64408 0.231 2
@@ -53,21 +60,21 @@ Robot {
             position -5.418370602545173e-05
             axis 0 1 0
             anchor 0.519079 0 1.3052
+            dampingConstant 0.1
           }
           device [
             DEF MotorL RotationalMotor {
               name "MotorL"
-              controlPID 100 0 0
-              maxVelocity 100
-              maxTorque 1000000
+              controlPID 45 0 1
+              maxTorque 300
             }
             DEF PosL PositionSensor {
               name "PosL"
             }
           ]
           endPoint DEF ActLeft Solid {
-            translation -9.00393847114156e-06 -5.716233623484772e-06 -2.88744722309886e-06
-            rotation -0.6866323626517243 -2.641047920749015e-06 -0.7270048132937884 3.9144417349951e-06
+            translation 2.225052850046705e-05 -2.3251750798286557e-05 7.359425294506394e-06
+            rotation -0.9989451222355313 -1.1565678849488006e-05 -0.04591995892936637 2.311169620793149e-06
             children [
               DEF LeftJoint HingeJoint {
                 jointParameters HingeJointParameters {
@@ -76,7 +83,7 @@ Robot {
                   anchor 0.519079 0 0.685199
                 }
                 endPoint DEF EndLeft Solid {
-                  translation -3.5416114485542494e-14 0 -3.5638159090467525e-14
+                  translation -5.750955267558311e-14 0 -5.784261958297066e-14
                   children [
                     DEF EndLeft Shape {
                       appearance Appearance {
@@ -110,7 +117,7 @@ Robot {
                   name "EndLeft"
                   boundingObject USE EndLeft
                   physics Physics {
-                    mass 10
+                    mass 1.735
                   }
                 }
               }
@@ -146,7 +153,7 @@ Robot {
             name "ActLeft"
             boundingObject USE ActLeft
             physics Physics {
-              mass 10
+              mass 1.978
             }
           }
         }
@@ -155,20 +162,21 @@ Robot {
             position -4.4408045540323275e-05
             axis 0 1 0
             anchor 0.769079 0 1.3052
+            dampingConstant 0.1
           }
           device [
             DEF MotorR RotationalMotor {
               name "MotorR"
-              controlPID 100 0 0
-              maxVelocity 100
-              maxTorque 1000000
+              consumptionFactor 0
+              controlPID 45 0 1
+              maxTorque 300
             }
             DEF PosR PositionSensor {
               name "PosR"
             }
           ]
           endPoint DEF ActRight Solid {
-            translation 1.0203075099468606e-05 -7.694695816304868e-06 1.2959481627827785e-06
+            translation 1.0203075143433438e-05 -7.694695816304197e-06 1.2959482946772738e-06
             rotation -0.312297687111658 -2.0637037038686893e-06 0.9499842917756324 2.4497799047903256e-06
             children [
               DEF RightJoint HingeJoint {
@@ -178,7 +186,7 @@ Robot {
                   anchor 0.769079 0 0.685199
                 }
                 endPoint DEF EndRight Solid {
-                  translation -7.149836278586008e-14 0 -7.127631818093505e-14
+                  translation -1.1546319456101628e-13 0 -1.1524114995609125e-13
                   children [
                     DEF EndEffJoint HingeJoint {
                       jointParameters HingeJointParameters {
@@ -221,7 +229,7 @@ Robot {
                   name "EndRight"
                   boundingObject USE EndRight
                   physics Physics {
-                    mass 10
+                    mass 1.735
                   }
                 }
               }
@@ -257,7 +265,7 @@ Robot {
             name "ActRight"
             boundingObject USE ActRight
             physics Physics {
-              mass 10
+              mass 1.978
             }
           }
         }

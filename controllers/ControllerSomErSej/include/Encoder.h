@@ -21,7 +21,10 @@ class Encoder
 {
 private:
 
-    float Velocity = 4.444; // Velocity for robot movement, m/s
+    float VehicleVelocity = 0.7; //km/h
+    float CorrectionFactor = 0.06; //0.05 ved 1km/h. 0.02 ved 2km/h. 0.01 ved 8km/h.
+    float Velocity = 4*0.277777; // Velocity for robot movement, km/h.
+
     float DistVehicle = 0.6857; //Distance in m from camera origo to robot origo
     float Xoffset = 0.5; //The X offset from camera origo to robot kinematic origo.
     double tStart = 0;
