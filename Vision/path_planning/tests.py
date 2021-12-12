@@ -6,7 +6,7 @@ import numpy as np
 from path_planning.path_planning import find_path
 import random
 
-HEIGHT = 320
+HEIGHT = 3200
 WIDTH = 480
 INCREMENT = 0.25 # 20% of 1m = 20cm 
 PIXEL_INCREMENT = HEIGHT*INCREMENT
@@ -106,7 +106,7 @@ def visualize(frame: Frame, p1, offset):
     
     shifts = 0
 
-    for crack in frame.cracks:
+    for crack in frame.raw_cracks:
         cords = crack.get_coordinates()
         for i in range(0,len(cords)-1):
             x, y = cords[i][0], cords[i][1]

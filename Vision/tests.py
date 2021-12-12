@@ -1,4 +1,6 @@
 import math
+
+from matplotlib.pyplot import plot
 from path_planning.crack import Crack
 from path_planning.frame import Frame
 import cv2
@@ -6,8 +8,10 @@ import numpy as np
 from path_planning.path_planning import find_path
 import random
 
-HEIGHT = 320
-WIDTH = 480
+from vision import NpEncoder
+
+HEIGHT = 480
+WIDTH = 320
 INCREMENT = 0.25 # 20% of 1m = 20cm 
 PIXEL_INCREMENT = HEIGHT*INCREMENT
 
@@ -15,9 +19,9 @@ def test():
     a = []
     b = []
     c = []
-
-    for i in range(0,170):
+    for i in range(0,130):
         a.append([math.floor(50+10*math.sin(i/20)),10+i*2])
+    for i in range(0,170):
         b.append([math.floor(170-20*math.exp(i/100)),170+i*2])
         c.append([math.floor(200+20*math.exp(i/100)),100+i*2])
 
@@ -137,16 +141,15 @@ def visualize(frame: Frame, p1, offset):
         
     return blank_image
 
-
-if __name__ == "__main__":
-
-
+def plotPathPlanning():
     from path_planning.utils import map_cracks
     frame = test()
     frame0 = test0()
-    find_path(frame)
+    frame.find_path()
+    #find_path(frame)
     map_cracks(frame,frame0,480*0.75)
-    frame0 = find_path(frame0)
+    #frame0 = find_path(frame0)
+    frame0.find_path()
     frame0Vis = visualize(frame, frame.path,480*0.75)
     frame1Vis = visualize(frame0, frame0.path,480*0.25)
 
@@ -178,3 +181,51 @@ if __name__ == "__main__":
         cv2.imshow("frame",frame1Vis)
         cv2.imshow("frame2",frame2Vis)
         cv2.waitKey(20)
+
+def convert_binary_image_to_json(input_file,json_output,path_output):
+    from skimage.morphology import skeletonize
+    from utils.features import process_image
+    #from path_planning.frame import Frame
+   # from path_planning.crack import Crack
+    from path_planning.path_planning import (WIDTH, find_path)
+    import json
+
+    img = cv2.imread(f"test_data/Path_Planning_Json/{input_file}", cv2.IMREAD_GRAYSCALE)
+    (thresh, blackAndWhiteImage) = cv2.threshold(img, 127, 1, cv2.THRESH_BINARY)
+
+    frame1 = Frame()
+
+
+    sorted_cracks = process_image(blackAndWhiteImage)
+
+    for crack in sorted_cracks:
+        frame1.add_crack(Crack(crack))
+
+    
+    #frame1.find_path()
+    frame1.find_path()
+
+    data_array = frame1.get_json_array()
+
+    # Clear file
+    open(f"test_data/Path_Planning_Json/{json_output}", 'w').close()
+
+    for data in data_array:
+        
+        with open(f"test_data/Path_Planning_Json/{json_output}", 'a') as outfile:
+            data = json.dumps(data,cls=NpEncoder)
+            data = json.loads(data)
+            json.dump(data, outfile)    
+            outfile.write('\n')
+
+
+    visual = visualize(frame1,frame1.path, 3200)
+    cv2.imwrite(f"test_data/Path_Planning_Json/{path_output}",visual)
+
+
+if __name__ == "__main__":
+    # Take a binary image convert the image to a path in json format
+    # convert_binary_image_to_json("crackAdvanced.png","json_advanced.txt","Advanced.png")
+    # convert_binary_image_to_json("crackSimple.png","json_simple.txt","Simple.png")
+    #convert_binary_image_to_json("test.png","sletmig.txt","path.png")
+    plotPathPlanning()

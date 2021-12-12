@@ -21,6 +21,12 @@ class Crack:
         self._crack_in_next_frame = False
         pass
     
+    def __len__(self):
+        return len(self._crack_coordinates)
+
+    def __getitem__(self,index):
+        return self._crack_coordinates[index]
+
     def _add_state(self):
         for idx in range(0,len(self._crack_coordinates)):
             self._crack_coordinates[idx].append(False)

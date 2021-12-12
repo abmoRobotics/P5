@@ -22,26 +22,26 @@ class DoubleConv(nn.Module):
 
 class UNET(nn.Module):
     def __init__(
-            self, in_channels=3, out_channels=1, features=[32, 64, 128, 256],#, 512],
+            self, in_channels=3, out_channels=1, features=[64, 128, 256, 512],#, 512],
     ):
         super(UNET, self).__init__()
-        self.ups = nn.ModuleList()
-        self.downs = nn.ModuleList()
+        self.decoder = nn.ModuleList()
+        self.encoder = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        # downs part of UNET
+        # encoder part of UNET
         for feature in features:
-            self.downs.append(DoubleConv(in_channels, feature))
+            self.encoder.append(DoubleConv(in_channels, feature))
             in_channels = feature
 
-        # ups part of UNET
+        # decoder part of UNET
         for feature in reversed(features):
-            self.ups.append(
+            self.decoder.append(
                 nn.ConvTranspose2d(
                     feature*2, feature, kernel_size=2, stride=2,
                 )
             )
-            self.ups.append(DoubleConv(feature*2, feature))
+            self.decoder.append(DoubleConv(feature*2, feature))
 
         self.bottleneck = DoubleConv(features[-1], features[-1]*2)
         self.final_conv = nn.Conv2d(features[0], out_channels, kernel_size=1)
@@ -50,23 +50,23 @@ class UNET(nn.Module):
         #print(x.is_cuda)
         skip_connections = []
 
-        for down in self.downs:
-            x = down(x)
-            skip_connections.append(x)
-            x = self.pool(x)
+        for down in self.encoder:
+            x = down(x) # Apply double convulution
+            skip_connections.append(x)  # save output for the decoder (Skip connection)
+            x = self.pool(x)    # Apply max pooling operation
         
-        x = self.bottleneck(x)
-        skip_connections = skip_connections[::-1]
+        x = self.bottleneck(x)  # Apply double convulution for the bottleneck
+        skip_connections = skip_connections[::-1]   # flip the order of the saved skip connections
 
-        for idx in range(0, len(self.ups), 2):
-            x = self.ups[idx](x)
-            skip_connection = skip_connections[idx//2]
+        for idx in range(0, len(self.decoder), 2):
+            x = self.decoder[idx](x) # Apply decoderampling
+            skip_connection = skip_connections[idx//2]  # get skip connection
 
             if x.shape != skip_connection.shape:
                 x = TF.resize(x, size=skip_connection.shape[2:])
 
-            concat_skip = torch.cat((skip_connection, x), dim=1)
-            x = self.ups[idx+1](concat_skip)
+            concat_skip = torch.cat((skip_connection, x), dim=1)    # concatenate skip connection
+            x = self.decoder[idx+1](concat_skip)    # decoderample 
 
         return self.final_conv(x)
 

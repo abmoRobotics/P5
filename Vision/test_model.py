@@ -4,11 +4,12 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import cv2
 from utils.utils import load_model
-from utils.features import closing
-from skimage.morphology import binary_closing
+from utils.features import closing, skeletonize
+from skimage.morphology import binary_closing 
+
 detect_transform = A.Compose(
         [
-            A.Resize(height=640, width=960),
+            A.Resize(height=960, width=540),
             A.Normalize(
                 mean=[0.0, 0.0, 0.0],
                 std=[1.0, 1.0, 1.0],
@@ -24,12 +25,13 @@ def test_img():
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     from PIL import Image
     import numpy as np
-    img = Image.open(r"C:\Users\anton\Aalborg Universitet\P5 - General\1. P5 - Projektmappe\2. Programming\Vision\pavement crack datasets\CRACK500\testdata\20160308_073310.jpg")
+    img = Image.open(r"C:\Users\anton\Aalborg Universitet\P5 - General\1. P5 - Projektmappe\2. Programming\Vision\pavement crack datasets\CRACK500\testdata\20160308_072824.jpg")
     img = np.array(img)
+    img = np.rot90(img)
     #print(img.shape)
     augmentented = detect_transform(image=img)
     data = augmentented["image"].to(device=DEVICE)
-    model = load_model("model/crack500BrightnessAugmentationv2.pth.tar")
+    model = load_model("model/crack500v2.pth.tar")
     data = torch.unsqueeze(data,0)
     output = torch.sigmoid(model(data))
     output = torch.squeeze(output)
@@ -39,7 +41,7 @@ def test_img():
     after_closing = binary_closing(a, selem=np.ones((9, 9)))
     cv2.imwrite('closing.jpg', (after_closing*255).astype(np.uint8))
     # preds = closing(preds.cpu().numpy())
-    # preds = skeletonization(preds)
+    # preds = skeletonize(preds)
     # preds = (preds*255).astype(np.uint8)
 
 

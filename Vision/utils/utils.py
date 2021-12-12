@@ -4,7 +4,7 @@ from utils.dataset import CrackDataset
 from torch.utils.data import DataLoader
 from model.model import UNET
 
-def save_checkpoint(state, filename="model/crack500BrightnessAugmentationv10.pth.tar"):
+def save_checkpoint(state, filename="model/crack500v4.pth.tar"):
     print("=> Saving checkpoint")
     torch.save(state, filename)
 
@@ -132,13 +132,14 @@ def save_predictions_as_imgs(
             preds, f"{folder}/pred_{idx}.png"
         )
         torchvision.utils.save_image(y.unsqueeze(1), f"{folder}{idx}.png")
+        torchvision.utils.save_image(x, f"{folder}/original_{idx}.png")
 
     model.train()
 
 
 
-def load_model(model_name):
-    model = UNET(in_channels=3, out_channels=1)
+def load_model(model_name, features=[64,128,256,512]):
+    model = UNET(in_channels=3, out_channels=1, features=features)
     checkpoint = torch.load(model_name)
     model.load_state_dict(checkpoint['state_dict'])
     model.eval()

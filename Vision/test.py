@@ -14,8 +14,8 @@ from utils.utils import (load_model)
 
 # hyperparameters
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-IMAGE_HEIGHT = 320
-IMAGE_WIDTH = 480
+IMAGE_HEIGHT = 360
+IMAGE_WIDTH = 640
 TEST_IMG_DIR = "data/test_images/"
 TEST_MASK_DIR = "data/test_masks/"
 
@@ -114,7 +114,7 @@ def check_accuracy(loader, model):
 def main():
     test_loader = get_testDS()
     # loop = tqdm(test_loader)
-    model = load_model("model/crack500BrightnessAugmentationv3.pth.tar")
+    model = load_model("model/crack500v4.pth.tar", features=[64, 128, 256, 512])
 
     IoU, F1 = check_accuracy(test_loader, model)
     print(F1)
