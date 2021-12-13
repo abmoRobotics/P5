@@ -65,16 +65,17 @@ Robot {
           device [
             DEF MotorL RotationalMotor {
               name "MotorL"
-              controlPID 45 0 1
-              maxTorque 300
+              controlPID 55 0.5 1
+              maxVelocity 10.472
+              maxTorque 445
             }
             DEF PosL PositionSensor {
               name "PosL"
             }
           ]
           endPoint DEF ActLeft Solid {
-            translation 2.225052850046705e-05 -2.3251750798286557e-05 7.359425294506394e-06
-            rotation -0.9989451222355313 -1.1565678849488006e-05 -0.04591995892936637 2.311169620793149e-06
+            translation 2.2250528499356825e-05 -2.3251750798286557e-05 7.359425294506394e-06
+            rotation -0.9989451222355311 -1.1565678849488001e-05 -0.04591995892936641 2.311169620793149e-06
             children [
               DEF LeftJoint HingeJoint {
                 jointParameters HingeJointParameters {
@@ -83,7 +84,7 @@ Robot {
                   anchor 0.519079 0 0.685199
                 }
                 endPoint DEF EndLeft Solid {
-                  translation -5.750955267558311e-14 0 -5.784261958297066e-14
+                  translation -5.806466418789569e-14 0 -5.839773109528323e-14
                   children [
                     DEF EndLeft Shape {
                       appearance Appearance {
@@ -168,16 +169,17 @@ Robot {
             DEF MotorR RotationalMotor {
               name "MotorR"
               consumptionFactor 0
-              controlPID 45 0 1
-              maxTorque 300
+              controlPID 55 0.5 1
+              maxVelocity 10.472
+              maxTorque 445
             }
             DEF PosR PositionSensor {
               name "PosR"
             }
           ]
           endPoint DEF ActRight Solid {
-            translation 1.0203075143433438e-05 -7.694695816304197e-06 1.2959482946772738e-06
-            rotation -0.312297687111658 -2.0637037038686893e-06 0.9499842917756324 2.4497799047903256e-06
+            translation 1.020307514454366e-05 -7.69469581630418e-06 1.2959482980079429e-06
+            rotation -0.3122976871116581 -2.06370370386869e-06 0.9499842917756326 2.4497799047903256e-06
             children [
               DEF RightJoint HingeJoint {
                 jointParameters HingeJointParameters {
@@ -186,7 +188,7 @@ Robot {
                   anchor 0.769079 0 0.685199
                 }
                 endPoint DEF EndRight Solid {
-                  translation -1.1546319456101628e-13 0 -1.1524114995609125e-13
+                  translation -1.1657341758564144e-13 0 -1.163513729807164e-13
                   children [
                     DEF EndEffJoint HingeJoint {
                       jointParameters HingeJointParameters {
