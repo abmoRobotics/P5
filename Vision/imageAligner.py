@@ -149,20 +149,21 @@ if __name__ == "__main__":
     import time
 
 
-    im1 = cv2.imread("test_data/p1.png")
-   # im1 = cv2.cvtColor(im1,cv2.COLOR_BGR2GRAY)
-    im1 = cv2.resize(im1, (480,320),interpolation=cv2.INTER_AREA)
+    im1 = cv2.imread("test_data/image_aligner/p1.png")
+    im1 = cv2.cvtColor(im1,cv2.COLOR_BGR2GRAY)
+   # im1 = cv2.resize(im1, (480,320),interpolation=cv2.INTER_AREA)
     #print(im1.dtype)
-    im2 = cv2.imread("test_data/p2.png")
+    im2 = cv2.imread("test_data/image_aligner/p2.png")
 
-    #im2 = cv2.cvtColor(im2,cv2.COLOR_BGR2GRAY)
-    im2 = cv2.resize(im2, (480,320),interpolation=cv2.INTER_AREA)
+    im2 = cv2.cvtColor(im2,cv2.COLOR_BGR2GRAY)
+  #  im2 = cv2.resize(im2, (480,320),interpolation=cv2.INTER_AREA)
+    imageAlignerCPU(im1,im2)
     print(im2.shape)
-    for i in range(10):
-        t1 = time.time()
+    # for i in range(10):
+    #     t1 = time.time()
         
-        print(imageAlignerGPU(im1,im2))
+    #     print(imageAlignerGPU(im1,im2))
 
-        # for i in range (0,100):
-        #     imageAlignerCPU(im1,im2)
-        print((time.time()-t1))
+    #     # for i in range (0,100):
+    #     #     imageAlignerCPU(im1,im2)
+    #     print((time.time()-t1))

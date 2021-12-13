@@ -19,12 +19,12 @@ def map_cracks(frame1: Frame, frame2: Frame, offset: int):
 
     # First the function maps crack from frame 1 to frame 2.
     mapped_cracks = []
-    for i, crack_frame1 in enumerate(frame1.cracks):
+    for i, crack_frame1 in enumerate(frame1.raw_cracks):
         if crack_frame1.crack_in_next_frame():
             x_val_frame1 = (crack_frame1.get_last_crack())[0]
             index = 0
             min_val = 999
-            for idx, crack_frame2 in enumerate(frame2.cracks):
+            for idx, crack_frame2 in enumerate(frame2.raw_cracks):
                 x_val_frame2 = (crack_frame2.get_first_crack())[0]
                 frame_diff = abs(x_val_frame2-x_val_frame1) 
                 if frame_diff < min_val:
@@ -37,14 +37,14 @@ def map_cracks(frame1: Frame, frame2: Frame, offset: int):
         old_crack_id = cracks['old_frame']
         new_crack_id = cracks['new_frame']
 
-        frame1_current_crack = frame1.cracks[old_crack_id].get_current_crack()
-        while not frame2.cracks[new_crack_id].is_done():
-            if ((frame2.cracks[new_crack_id].get_current_crack())[1] <= frame1_current_crack[1] - offset):
+        frame1_current_crack = frame1.raw_cracks[old_crack_id].get_current_crack()
+        while not frame2.raw_cracks[new_crack_id].is_done():
+            if ((frame2.raw_cracks[new_crack_id].get_current_crack())[1] <= frame1_current_crack[1] - offset):
                 # Marks the current point in the crack as "repaired"
-                frame2.cracks[new_crack_id].repair()
+                frame2.raw_cracks[new_crack_id].repair()
             else:
                 # Indicates that this is the start/end of a crack
-                frame2.cracks[new_crack_id].shift()
+                frame2.raw_cracks[new_crack_id].shift()
                 break
 
     return mapped_cracks

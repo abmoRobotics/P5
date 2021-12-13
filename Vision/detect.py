@@ -42,7 +42,7 @@ detect_transform = A.Compose(
     )
 
 # Load the trained model
-model = load_model("model/crack500BrightnessAugmentationv3.pth.tar")
+model = load_model("model/crack500v4.pth.tar")
 
 cap = cv2.VideoCapture(1)
 

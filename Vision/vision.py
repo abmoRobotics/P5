@@ -181,7 +181,9 @@ def thread_path_plan(data_in, data_out, lock_in, lock_out, event_in, event_out):
             #print("hej")
             #print(old_frame.path)
             map_cracks(old_frame,frame1,offset)
-        path1 = find_path(frame1)
+        
+        frame1.find_path()
+        #path1 = find_path(frame1)
        
         old_frame = copy.copy(frame1)
         # from path_planning.utils import map_cracks
@@ -191,7 +193,7 @@ def thread_path_plan(data_in, data_out, lock_in, lock_out, event_in, event_out):
         
         # Set data if lock is free
         lock_out.acquire()
-        data_out.set_data(find_path(frame1))
+        data_out.set_data(frame1)
         event_out.set()
         lock_out.release()
         print("Thread 3: ", time.time()-start_time)
