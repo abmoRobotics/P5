@@ -21,9 +21,9 @@ class Encoder
 {
 private:
 
-    float VehicleVelocity = 0.7; //km/h
-    float CorrectionFactor = 0.06; //0.05 ved 1km/h. 0.02 ved 2km/h. 0.01 ved 8km/h.
-    float Velocity = 4*0.277777; // Velocity for robot movement, km/h.
+    float VehicleVelocity = 12; //km/
+    float CorrectionFactor = 0.01; // 0.06 ved 0.7km/h. 0.05 ved 1km/h. 0.02 ved 2km/h. 0.01 ved 8km/h.
+    float Velocity = 60*0.277777; // Velocity for robot movement, km/h.
 
     float DistVehicle = 0.6857; //Distance in m from camera origo to robot origo
     float Xoffset = 0.5; //The X offset from camera origo to robot kinematic origo.
@@ -66,5 +66,6 @@ public:
     void setMeasurements(float dist, float length1, float length2);
     void visualizePoints(webots::Display *display, double time, float* robotPos);
     int* getDisplayCoordinates(Point point, double time);
+    void visualizeEndEffector(webots::Display *display, float* robotPos);
 
 };

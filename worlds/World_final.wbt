@@ -4,8 +4,8 @@ WorldInfo {
   coordinateSystem "NUE"
 }
 Viewpoint {
-  orientation 0.08748202070665118 -0.9681969246742087 -0.2343962693911439 3.8143820082899818
-  position 2.367321510394757 1.4011435752234083 -0.820179394255413
+  orientation 0.0991492817386706 -0.9565433474109027 -0.27421568965806964 3.669508156034627
+  position 1.46085419103597 1.0712957615888465 -0.3744341741895627
 }
 DirectionalLight {
   ambientIntensity 1
@@ -74,8 +74,8 @@ Robot {
             }
           ]
           endPoint DEF ActLeft Solid {
-            translation 2.2250528499356825e-05 -2.3251750798286557e-05 7.359425294506394e-06
-            rotation -0.9989451222355311 -1.1565678849488001e-05 -0.04591995892936641 2.311169620793149e-06
+            translation 2.2250528480927123e-05 -2.3251750798286557e-05 7.359425294506394e-06
+            rotation -0.9989451222355311 -1.1565678849488003e-05 -0.04591995892936645 2.311169620793149e-06
             children [
               DEF LeftJoint HingeJoint {
                 jointParameters HingeJointParameters {
@@ -84,7 +84,7 @@ Robot {
                   anchor 0.519079 0 0.685199
                 }
                 endPoint DEF EndLeft Solid {
-                  translation -5.806466418789569e-14 0 -5.839773109528323e-14
+                  translation -6.727951529228449e-14 0 -6.761258219967203e-14
                   children [
                     DEF EndLeft Shape {
                       appearance Appearance {
@@ -178,18 +178,22 @@ Robot {
             }
           ]
           endPoint DEF ActRight Solid {
-            translation 1.020307514454366e-05 -7.69469581630418e-06 1.2959482980079429e-06
-            rotation -0.3122976871116581 -2.06370370386869e-06 0.9499842917756326 2.4497799047903256e-06
+            translation 1.0203075162973363e-05 -7.694695816303899e-06 1.2959483532970495e-06
+            rotation -0.312297687111658 -2.0637037038686893e-06 0.9499842917756324 2.4497799047903256e-06
             children [
               DEF RightJoint HingeJoint {
                 jointParameters HingeJointParameters {
                   position -0.0001612188617430344
                   axis 0 1 0
                   anchor 0.769079 0 0.685199
+                  maxStop 2.8
                 }
                 endPoint DEF EndRight Solid {
-                  translation -1.1657341758564144e-13 0 -1.163513729807164e-13
+                  translation -1.3500311979441904e-13 0 -1.34781075189494e-13
                   children [
+                    GPS {
+                      translation 0.6435 0.29 -0.05
+                    }
                     DEF EndEffJoint HingeJoint {
                       jointParameters HingeJointParameters {
                         axis 0 1 0

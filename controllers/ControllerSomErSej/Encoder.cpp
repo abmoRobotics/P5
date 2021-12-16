@@ -262,5 +262,21 @@ int* Encoder::getDisplayCoordinates(Point point, double time){
   Coord[1] = 800 + (int)(320*YAtTime(point, time));
 
   return Coord;
+  
+}
 
+void Encoder::visualizeEndEffector(webots::Display *display, float* robotPos){
+  
+  int *Coord = new int[2];
+  
+  //X-coordinate
+  Coord[0] = (int)(robotPos[0] * 320);
+  
+  //Y-coordinate
+  //y=800 equals y=0 in camera frame
+  Coord[1] = 800 + (int)(320*robotPos[1]);
+  display->setAlpha(1);
+  display->setColor(std::stoi("00FF00",0,16));
+
+  display->fillOval(Coord[0], Coord[1], 2, 2);
 }

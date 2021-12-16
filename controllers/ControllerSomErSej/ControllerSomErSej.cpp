@@ -5,6 +5,7 @@
 #include </usr/local/webots/include/controller/cpp/webots/Motor.hpp>
 #include </usr/local/webots/include/controller/cpp/webots/PositionSensor.hpp>
 #include </usr/local/webots/include/controller/cpp/webots/Display.hpp>
+#include </usr/local/webots/include/controller/cpp/webots/GPS.hpp>
 // #include </usr/local/webots/include/controller/cpp/webots/Shape.hpp>
 #include <math.h>
 #include <vector>
@@ -34,6 +35,8 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
   MotionPlanning Motion;
   Encoder.setMeasurements(RobotController.L0, RobotController.L1, RobotController.L2);
   webots::Display CrackDisplay("CrackDisplay");
+  webots::GPS GPS("gps");
+  GPS.enable(1);
 
   Motion.debug = false;
   Encoder.debug = false;
@@ -86,19 +89,23 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
 
     RobotController.robot->getMotor("MotorL")->enableTorqueFeedback(1);
     RobotController.robot->getMotor("MotorR")->enableTorqueFeedback(1);
-    fout << "LeftTorque:" << RobotController.robot->getMotor("MotorL")->getTorqueFeedback() << " ,RightTorque:" << RobotController.robot->getMotor("MotorR")->getTorqueFeedback() << "\n";
+    //fout << "LeftTorque:" << RobotController.robot->getMotor("MotorL")->getTorqueFeedback() << " ,RightTorque:" << RobotController.robot->getMotor("MotorR")->getTorqueFeedback() << "\n";
     // std::cout << "LeftTorque:" << RobotController.robot->getMotor("MotorL")->getTorqueFeedback() << " ,RightTorque:" << RobotController.robot->getMotor("MotorR")->getTorqueFeedback() << "\n";
 
 
     float* coord = RobotController.ReturnCoord();
-    coord[0] = coord[0] + 0.375;
-    coord[1] = - coord[1] - 0.6857; 
+    // coord[0] = coord[0] + 0.375;
+    // coord[1] = - coord[1] - 0.6857; 
 
-    avgY.push_back(coord[1]);
+    //avgY.push_back(coord[1]);
 
-    // std::cout << "x:"<< coord[0] << " y:" << coord[1] << std::endl;
+    const double* gpsCoord = GPS.getValues();
+
+    coord[0] = (float)gpsCoord[0]-0.137;
+    coord[1] = (float)gpsCoord[2]-2.014;
 
     Encoder.visualizePoints(&CrackDisplay, time, coord);
+    Encoder.visualizeEndEffector(&CrackDisplay,coord);
 
     if(Encoder.Goals.size() == 0){
       int counter[4] = {0,0,0,0};
@@ -123,16 +130,16 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
       double accumulatedY = 0.0;
       int AverageYSize = 0;
 
-      for (size_t i = 0; i < avgY.size(); i++)
-      {
-        if(isnan(avgY.at(i)) == 0){
-          accumulatedY = accumulatedY + (double)avgY.at(i);
-          AverageYSize++;
-        }         
-      }
-      averageY = accumulatedY/(double)AverageYSize;
-      double loadindex = -92.215 * averageY -83.431;
-      std::cout << "LoadIndex: " << loadindex << "%" << std::endl;
+      // for (size_t i = 0; i < avgY.size(); i++)
+      // {
+      //   if(isnan(avgY.at(i)) == 0){
+      //     accumulatedY = accumulatedY + (double)avgY.at(i);
+      //     AverageYSize++;
+      //   }         
+      // }
+      // averageY = accumulatedY/(double)AverageYSize;
+      // double loadindex = -92.215 * averageY -83.431;
+      // std::cout << "LoadIndex: " << loadindex << "%" << std::endl;
 
       delete RobotController.robot;
 
@@ -153,7 +160,7 @@ void Communication(){ // Udlede positioner og tider fra vision
 
   // File pointer
   std::fstream fin;
-  std::string filename = "/home/emil/Documents/json_advanced.txt";
+  std::string filename = "/home/emil/Documents/json_LongV4.txt";
   // Open an existing file
   std::cout << "Loading file: " << filename << std::endl;
   fin.open(filename, std::ios::in);
