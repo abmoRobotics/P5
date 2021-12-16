@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from skimage.util import invert
 import time
 import networkx as nx
-from sklearn.neighbors import NearestNeighbors
+from sklearn.neighbors import NearestNeighbors, radius_neighbors_graph
 import math
 
 #from ..path_planning import frame
@@ -37,7 +37,7 @@ def closing(img):
         # print("Perimeter: ", perimeter)
         # print("Circularity: ", circularity)
         # print("Area: ", area)
-        if area > 1000:
+        if area > 200:
              cv2.drawContours(mask, [cnt], 0, (255), -1)
 
     result = cv2.bitwise_and(image,image, mask= mask)
@@ -117,23 +117,27 @@ def skeletonization_with_threshold(img):
 
     return skeleton
 
-def region_array(img):
+def region_array(img, xyFomrat=True):
     labels, num = measure.label(img,connectivity=2,return_num=True)
     MINIMUM_AREA = 2
     region_arr =[]
+    region_arr_xy =[]
     for i in range(0,num):
         region = np.where((labels[:]==i+1))
+        region_arr_xy.append(region)
 
         if len(region[0]) > MINIMUM_AREA:
             # (x,y)
             region = list(zip(region[1], region[0]))
             region_arr.append(region)
-    return region_arr
+
+        
+    return region_arr, region_arr_xy
 
 def find_branches(image, preds):
     kernel = np.array( [[1, 1, 1],
-                    [1, 10, 1],
-                    [1, 1, 1]])
+                        [1, 10, 1],
+                        [1, 1, 1]])
     image = (image).astype(np.uint8)
 	# grab the spatial dimensions of the image, along with
 	# the spatial dimensions of the kernel
@@ -162,17 +166,44 @@ def find_branches(image, preds):
 
 def sort_branch(regions):
     crack_cords = []
+
+    # find ends
+
     for region in regions:
         points = region
-        clf = NearestNeighbors(n_neighbors=2,algorithm='auto').fit(points)
-        G = clf.kneighbors_graph()
-        T = nx.from_scipy_sparse_matrix(G)
-        order = list(nx.dfs_preorder_nodes(T, 0))
+       # clf2 = radius_neighbors_graph()
+        #clf = NearestNeighbors(n_neighbors=2,algorithm='auto').fit(points)
+        clf = NearestNeighbors(radius=1.5,metric='euclidean').fit(points)
+       # print(clf.radius_neighbors)
+        print("HEJ")
+        #G = clf.kneighbors_graph()
+        P = clf.radius_neighbors_graph() 
+        #print("HEK", G)
+        
+        T = nx.from_scipy_sparse_matrix(P)
+        end_points =[]
+        index = []
+        for idx, t in enumerate(T):
+            #print(T[idx])
+            #print(idx)
+            if len(T[idx]) < 2:
+                end_points.append((points[idx][1]))
+                index.append(idx)
+              #print(points[idx])
+        #print(end_points)
+        maxer = max(end_points)
+        #print("hejhej", end_points.index(maxer))
+        start_index = end_points.index(maxer)
+        print(index[start_index])
+        print(index[0])
+        print(index[1])
+        #print(len(T[0]))
+        order = list(nx.dfs_preorder_nodes(T, index[start_index-1]))
         #print(region)
         sorted_crack = [list(region[i]) for i in order]
         #region = region[order]
         crack_cords.append(sorted_crack)
-
+        
     return crack_cords
 
 # Input must be binary
@@ -180,13 +211,13 @@ def process_image(img):
 
     # Remove holes in image
     t1 = time.time()
-    img = closing(img) # 5 ms
+    #img = closing(img) # 5 ms
     cv2.imshow("Morph", img.astype(np.uint8)*255)
     cv2.waitKey(10)
     # Get skeleton
     
     skeleton = skeletonize(img) # 12 ms
-    
+    cv2.imwrite("hej.png", (skeleton*255).astype(np.uint8))
     # Extract array with pixels from skeleton
     skeleton_points = np.where(skeleton[:]==1) # 1 ms
     
@@ -197,17 +228,57 @@ def process_image(img):
     skeleton_branches = find_branches(skeleton, skeleton_points) # 5 ms
     
     # Find regions
-    regions = region_array(skeleton_branches) # 3 ms
-    
+    regions,reg2 = region_array(skeleton_branches,True) # 3 ms
+    if(0):
+        y1 = reg2[3][0]
+        x1 = reg2[3][1]
+        
+        plt.plot(x1, 940-y1)
+        y2 = reg2[2][0]
+        x2 = reg2[2][1]
+
+        plt.plot(x2, 940-y2)
+        y3 = reg2[4][0]
+        x3 = reg2[4][1]
+
+        plt.plot(x3, 940-y3)
+        plt.xlim([0, 540])
+        plt.ylim([0, 940])
+
+        plt.show()
     # Sort regions WAITING FOR JESPER
     sorted_cracks = sort_branch(regions) # 9 ms
+    # print(sorted_cracks[2])
+    if(0):
+        y1 = reg2[3][0][sorted_cracks[2]]
+        x1 = reg2[3][1][sorted_cracks[2]]
+        
+        plt.plot(x1, 940-y1)
+        y2 = reg2[2][0][sorted_cracks[1]]
+        x2 = reg2[2][1][sorted_cracks[1]]
+
+        plt.plot(x2, 940-y2)
+        y3 = reg2[4][0][sorted_cracks[3]]
+        x3 = reg2[4][1][sorted_cracks[3]]
+
+        plt.plot(x3, 940-y3)
+        plt.xlim([0, 540])
+        plt.ylim([0, 940])
+
+        plt.show()
     #print("TIME: ", str(time.time()-t1))
+    print("ERHADSFHSAJLOKDHJKOSA")
+    print(sorted_cracks[1])
+    e = []
+    e.append(sorted_cracks[0])
+    e.append(sorted_cracks[1])
     return sorted_cracks
 
 if __name__ == "__main__":
-    img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L')
-    #img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160222_081102_1921_1.png").convert('L')
+    #img = Image.open(r"C:\P5\P5\Vision\data\train_masks\20160328_151013_361_1281.png").convert('L')
+    img = Image.open(r"../closing.jpg").convert('L')
     img = np.array(img)
+    #img = np.rot90(img)
     (thresh, blackAndWhiteImage) = cv2.threshold(img, 127, 1, cv2.THRESH_BINARY)
     #binary_image = closing(blackAndWhiteImage)
     t1 = time.time()
