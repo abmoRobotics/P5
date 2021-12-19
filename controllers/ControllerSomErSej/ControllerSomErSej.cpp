@@ -14,6 +14,7 @@
 #include <string>
 #include <sstream>
 #include <UDP_Com.h>
+#include <chrono>
 #include "include/Controller.h"
 #include "include/Encoder.h"
 #include "include/MotionPlanning.h"
@@ -42,7 +43,7 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
   Encoder.debug = false;
 
   std::ofstream fout;
-  fout.open("ForceLog.txt");
+  fout.open("TimeLog.txt");
   fout.clear();
 
   int iteration = 0;
@@ -59,10 +60,20 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
     if(goals.size() > 1){
       if( (goals.at(1).goalT < time)){
         MutexP.lock();  
+          auto TimeBegin = std::chrono::high_resolution_clock::now();
           goals = Encoder.getGoalsForTrajectoryPlanning(time);
+          auto TimeEncoder = std::chrono::high_resolution_clock::now();
         MutexP.unlock();
         Motion.Plan(goals, time);
+        Motion.GetPosition(time-ptime);
+        auto TimeTrajectory = std::chrono::high_resolution_clock::now();
         ptime = (double)goals.at(0).goalT;
+
+        auto TimeTakenEncoder = std::chrono::duration_cast<std::chrono::nanoseconds>(TimeEncoder - TimeBegin);
+        auto TimeTakenTrajectory = std::chrono::duration_cast<std::chrono::nanoseconds>(TimeTrajectory - TimeEncoder);
+
+        fout << "EncoderTime: " << TimeTakenEncoder.count() << " TrajectoryTime: " << TimeTakenTrajectory.count() << std::endl;
+
         iteration+=1;
       }
     } else if(goals.size() == 1){
@@ -104,8 +115,11 @@ void Simulation(){ //Udnytte positioner og tiden beregnet i encoderen
     coord[0] = (float)gpsCoord[0]-0.137;
     coord[1] = (float)gpsCoord[2]-2.014;
 
+    float moveyy[2] = {movex+0.38, -movey-0.68};
+
     Encoder.visualizePoints(&CrackDisplay, time, coord);
-    Encoder.visualizeEndEffector(&CrackDisplay,coord);
+    Encoder.visualizeEndEffector(&CrackDisplay,coord, "00FF00", 2);
+    // Encoder.visualizeEndEffector(&CrackDisplay,moveyy, "FF00FF", 5);
 
     if(Encoder.Goals.size() == 0){
       int counter[4] = {0,0,0,0};
@@ -160,7 +174,7 @@ void Communication(){ // Udlede positioner og tider fra vision
 
   // File pointer
   std::fstream fin;
-  std::string filename = "/home/emil/Documents/json_LongV4.txt";
+  std::string filename = "/home/emil/Documents/json_Realistic.txt";
   // Open an existing file
   std::cout << "Loading file: " << filename << std::endl;
   fin.open(filename, std::ios::in);

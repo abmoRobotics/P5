@@ -21,9 +21,9 @@ class Encoder
 {
 private:
 
-    float VehicleVelocity = 12; //km/
-    float CorrectionFactor = 0.01; // 0.06 ved 0.7km/h. 0.05 ved 1km/h. 0.02 ved 2km/h. 0.01 ved 8km/h.
-    float Velocity = 60*0.277777; // Velocity for robot movement, km/h.
+    float VehicleVelocity = 8.0; //km/
+    float CorrectionFactor = 0.01; // 0.06 ved 0.7km/h || 0.05 ved 1km/h || 0.03 ved 1.58 km/h || 0.02 ved 2km/h || 0.018 ved 3.56km/h & 2.37km/h || 0.015 ved 5.33km/h || 0.01 ved 8km/h.
+    float Velocity = 10.0; // Velocity for robot movement, m/s.
 
     float DistVehicle = 0.6857; //Distance in m from camera origo to robot origo
     float Xoffset = 0.5; //The X offset from camera origo to robot kinematic origo.
@@ -66,6 +66,6 @@ public:
     void setMeasurements(float dist, float length1, float length2);
     void visualizePoints(webots::Display *display, double time, float* robotPos);
     int* getDisplayCoordinates(Point point, double time);
-    void visualizeEndEffector(webots::Display *display, float* robotPos);
+    void visualizeEndEffector(webots::Display *display, float* robotPos, std::string color, int size);
 
 };
